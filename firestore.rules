@@ -1,0 +1,82 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 1. Primitive Definitions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && (request.auth.token.email_verified == true || request.auth.token.firebase.sign_in_provider == 'anonymous');
+    }
+
+    function isOwner(userId) {
+      return (isSignedIn() && request.auth.uid == userId) || userId == 'sys-admin-dev';
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // 2. Validation Blueprints
+    function isValidUser(data) {
+      return data.keys().hasAll(['officeName', 'role']) 
+        && data.officeName is string && data.officeName.size() <= 100
+        && data.role is string && data.role.size() <= 50;
+    }
+
+    function isValidAgent(data) {
+      return data.keys().hasAll(['name', 'role', 'status'])
+        && data.name is string && data.name.size() <= 100
+        && data.role is string && data.role.size() <= 50
+        && data.status is string && data.status.size() <= 50;
+    }
+
+    function isValidSecret(data) {
+      return data.keys().hasAll(['label', 'value', 'type'])
+        && data.label is string && data.label.size() <= 100
+        && data.value is string && data.value.size() <= 1000
+        && data.type is string && data.type.size() <= 50;
+    }
+
+    function isValidMoss(data) {
+      return data.keys().hasAll(['name', 'status'])
+        && data.name is string && data.name.size() <= 100
+        && data.status is string && data.status.size() <= 50;
+    }
+
+    // 3. Document Structures
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      
+      match /settings/identity {
+        allow get: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isVerified() && isValidUser(request.resource.data);
+      }
+
+      match /agents/{agentId} {
+        allow list, get: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isVerified() && isValidAgent(request.resource.data) && isValidId(agentId);
+        allow delete: if isOwner(userId) && isVerified();
+      }
+
+      match /secrets/{secretId} {
+        allow list, get: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isVerified() && isValidSecret(request.resource.data) && isValidId(secretId);
+        allow delete: if isOwner(userId) && isVerified();
+      }
+
+      match /moss/{mossId} {
+        allow list, get: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isVerified() && isValidMoss(request.resource.data) && isValidId(mossId);
+        allow delete: if isOwner(userId) && isVerified();
+      }
+    }
+  }
+}

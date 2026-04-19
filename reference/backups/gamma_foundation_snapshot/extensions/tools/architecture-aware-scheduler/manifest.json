@@ -1,0 +1,25 @@
+{
+  "id": "architecture-aware-scheduler",
+  "name": "Architecture-Aware Scheduler",
+  "description": "Intelligence layer for optimal task routing across the Vine Mesh based on hardware profiles (Arm/Nvidia) and user choice.",
+  "type": "tool",
+  "author": "Viabhron Core",
+  "version": "1.0.0",
+  "capabilities": [
+    "hardware_profiling",
+    "mission_routing",
+    "metabolic_optimization",
+    "user_choice_ratification"
+  ],
+  "config": {
+    "defaultRoutingStrategy": {
+      "type": "select",
+      "options": ["efficiency", "performance", "manual"],
+      "default": "manual"
+    },
+    "autoAccreditation": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

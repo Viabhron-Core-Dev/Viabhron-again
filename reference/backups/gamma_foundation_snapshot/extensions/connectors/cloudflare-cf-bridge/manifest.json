@@ -1,0 +1,33 @@
+{
+  "id": "cloudflare-cf-bridge",
+  "name": "Cloudflare Sovereign Bridge",
+  "description": "Agent-first orchestration of Cloudflare edge infrastructure using the 'cf' CLI.",
+  "version": "1.0.0",
+  "author": "Viabhron Core",
+  "category": "connector",
+  "capabilities": [
+    "infrastructure_provisioning",
+    "edge_deployment",
+    "schema_enforcement",
+    "local_simulation"
+  ],
+  "config": {
+    "accounts": {
+      "type": "array",
+      "description": "Portfolio of Cloudflare accounts.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": { "type": "string" },
+          "apiToken": { "type": "password" },
+          "accountId": { "type": "string" }
+        }
+      }
+    },
+    "defaultMode": {
+      "type": "select",
+      "options": ["live", "simulation"],
+      "default": "simulation"
+    }
+  }
+}

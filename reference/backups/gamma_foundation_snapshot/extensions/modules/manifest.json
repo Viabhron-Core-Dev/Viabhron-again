@@ -1,0 +1,12 @@
+{
+  "name": "Core OS Modules",
+  "description": "Essential infrastructure modules for the Viabhron OS kernel, including Sentinel, Terminal, and Governance.",
+  "version": "1.0.0",
+  "category": "infrastructure",
+  "permissions": [
+    "kernel_access",
+    "ui_projection",
+    "agent_orchestration"
+  ],
+  "mission": "To provide the foundational skeletal structure and security guardrails for the Sovereign OS."
+}

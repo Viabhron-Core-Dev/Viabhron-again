@@ -1,0 +1,22 @@
+{
+  "id": "ambient-sounder",
+  "name": "Ambient Sounder",
+  "description": "Natural Text-to-Speech (TTS) engine for eyes-free interaction and agent vocalization.",
+  "version": "1.0.0",
+  "author": "Viabhron Core",
+  "category": "tool",
+  "capabilities": [
+    "tts_generation",
+    "voice_selection",
+    "audio_playback"
+  ],
+  "config": {
+    "provider": {
+      "type": "select",
+      "options": ["browser", "elevenlabs", "google_cloud"],
+      "default": "browser"
+    },
+    "defaultVoice": "natural",
+    "speechRate": 1.0
+  }
+}

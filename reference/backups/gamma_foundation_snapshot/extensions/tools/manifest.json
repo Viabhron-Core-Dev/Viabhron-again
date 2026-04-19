@@ -1,0 +1,11 @@
+{
+  "name": "Sovereign Tools",
+  "description": "Lightweight API connectors and utility functions.",
+  "version": "1.0.0",
+  "category": "tool",
+  "permissions": [
+    "network_access",
+    "sandbox_execution"
+  ],
+  "mission": "To provide rapid, functional bridges to external data and services."
+}

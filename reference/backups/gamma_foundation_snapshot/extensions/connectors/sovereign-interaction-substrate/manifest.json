@@ -1,0 +1,29 @@
+{
+  "id": "sovereign-interaction-substrate",
+  "name": "Sovereign Interaction Substrate",
+  "description": "Modular, scriptable kernels (Narrative, Spatial, Systems, Sensory) for games and apps.",
+  "type": "connector",
+  "author": "Viabhron Core",
+  "version": "1.0.0",
+  "capabilities": [
+    "narrative_kernel_execution",
+    "spatial_kernel_rendering",
+    "systems_kernel_sync",
+    "sensory_kernel_input",
+    "sovereign_script_compilation"
+  ],
+  "config": {
+    "defaultKernel": {
+      "type": "string",
+      "default": "narrative",
+      "enum": ["narrative", "spatial", "systems", "sensory"],
+      "description": "The primary kernel to load on initialization."
+    },
+    "renderQuality": {
+      "type": "string",
+      "default": "balanced",
+      "enum": ["performance", "balanced", "high-fidelity"],
+      "description": "Determines the rendering intensity for the Spatial kernel."
+    }
+  }
+}

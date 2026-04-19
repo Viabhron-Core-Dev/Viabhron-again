@@ -1,0 +1,12 @@
+{
+  "name": "Sovereign Supply Chain Shield",
+  "description": "Proactive defense against open-source malware (npm, PyPI) and supply chain attacks.",
+  "version": "1.0.0",
+  "category": "module",
+  "permissions": [
+    "package_manifest_interception",
+    "malware_index_access",
+    "substrate_pinning"
+  ],
+  "mission": "To protect the developer environment and OS substrate from malicious packages and state-actor supply chain compromises."
+}

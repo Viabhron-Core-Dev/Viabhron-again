@@ -1,0 +1,26 @@
+{
+  "id": "workspace-bridge",
+  "name": "Workspace Bridge",
+  "description": "Deep integration with Email and Calendar services (Google, Microsoft, IMAP).",
+  "version": "1.0.0",
+  "author": "Viabhron Core",
+  "category": "connector",
+  "capabilities": [
+    "email_read",
+    "email_send",
+    "calendar_read",
+    "calendar_write"
+  ],
+  "config": {
+    "provider": {
+      "type": "select",
+      "options": ["google", "microsoft", "imap"],
+      "default": "google"
+    },
+    "auth_type": {
+      "type": "select",
+      "options": ["oauth2", "app_password"],
+      "default": "oauth2"
+    }
+  }
+}

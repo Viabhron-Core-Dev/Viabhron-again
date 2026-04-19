@@ -1,0 +1,12 @@
+{
+  "name": "Sovereign Connectors",
+  "description": "External service integrations and bridges for the Viabhron OS.",
+  "version": "1.0.0",
+  "category": "connector",
+  "permissions": [
+    "network_access",
+    "oauth_flows",
+    "external_service_sync"
+  ],
+  "mission": "To provide secure, authenticated bridges to third-party platforms while maintaining data sovereignty."
+}

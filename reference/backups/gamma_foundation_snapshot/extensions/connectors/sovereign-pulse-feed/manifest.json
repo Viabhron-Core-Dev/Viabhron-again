@@ -1,0 +1,27 @@
+{
+  "id": "sovereign-pulse-feed",
+  "name": "Sovereign Pulse Feed",
+  "description": "Standalone synthesizer for unified Personal Intelligence briefings.",
+  "type": "connector",
+  "author": "Viabhron Core",
+  "version": "1.0.0",
+  "capabilities": [
+    "data_orchestration",
+    "pulse_synthesis",
+    "resonance_scoring",
+    "multi_channel_distribution"
+  ],
+  "config": {
+    "pulseFrequency": {
+      "type": "string",
+      "default": "morning",
+      "enum": ["morning", "evening", "realtime"],
+      "description": "When the primary pulse briefing is generated."
+    },
+    "synthesisModel": {
+      "type": "string",
+      "default": "gemini-2.0-flash",
+      "description": "The model used for pulse synthesis via the Linguistic Bridge."
+    }
+  }
+}

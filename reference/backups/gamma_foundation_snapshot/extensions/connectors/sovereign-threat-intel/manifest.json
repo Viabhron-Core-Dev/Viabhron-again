@@ -1,0 +1,26 @@
+{
+  "id": "sovereign-threat-intel",
+  "name": "Sovereign Threat Intelligence Bridge",
+  "description": "Real-time ingestion and resonance-filtering of MITRE ATT&CK and ATLAS threat data.",
+  "type": "connector",
+  "author": "Viabhron Core",
+  "version": "1.0.0",
+  "capabilities": [
+    "mitre_attack_ingestion",
+    "mitre_atlas_ingestion",
+    "substrate_resonance_filtering",
+    "advisory_generation"
+  ],
+  "config": {
+    "scanInterval": {
+      "type": "number",
+      "default": 3600,
+      "description": "Interval in seconds between threat intelligence scans."
+    },
+    "alertThreshold": {
+      "type": "number",
+      "default": 7,
+      "description": "Resonance score (1-10) above which a user advisory is issued."
+    }
+  }
+}

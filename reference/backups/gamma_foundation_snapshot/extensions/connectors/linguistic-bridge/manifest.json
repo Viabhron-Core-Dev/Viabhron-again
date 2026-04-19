@@ -1,0 +1,16 @@
+{
+  "id": "linguistic-bridge",
+  "name": "Linguistic Bridge",
+  "version": "1.0.0",
+  "category": "connector",
+  "description": "A universal gateway for local and OpenAI-compatible LLM providers (Ollama, LM Studio, DeepSeek).",
+  "author": "Viabhron Gamma Lab",
+  "capabilities": ["local-inference", "openai-compatibility", "model-fallback"],
+  "config": {
+    "defaultProvider": "ollama",
+    "endpoints": {
+      "ollama": "http://localhost:11434/v1",
+      "lm-studio": "http://localhost:1234/v1"
+    }
+  }
+}

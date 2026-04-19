@@ -1,0 +1,9 @@
+{
+  "name": "Viabhron",
+  "description": "A private, sovereign Multi-Agent Operating System (MAOS) with autonomous x402 payments, 8004 digital passports, and sovereign infrastructure orchestration.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}

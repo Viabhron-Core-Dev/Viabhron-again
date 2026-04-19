@@ -1,0 +1,33 @@
+{
+  "id": "quantum-ops-bridge",
+  "name": "Quantum Bridge",
+  "description": "Orchestration of external Quantum-as-a-Service (QaaS) providers and local quantum simulation.",
+  "type": "connector",
+  "author": "Viabhron Core",
+  "version": "1.0.0",
+  "capabilities": [
+    "quantum_simulation",
+    "qaas_orchestration",
+    "hybrid_dispatch",
+    "pqc_shielding"
+  ],
+  "config": {
+    "providers": {
+      "type": "array",
+      "description": "Portfolio of QaaS providers (IBM, QCentroid, etc.)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": { "type": "string" },
+          "providerId": { "type": "string" },
+          "apiKey": { "type": "password" }
+        }
+      }
+    },
+    "defaultSimulator": {
+      "type": "select",
+      "options": ["qiskit_local", "cirq_local", "aer_simulator"],
+      "default": "qiskit_local"
+    }
+  }
+}

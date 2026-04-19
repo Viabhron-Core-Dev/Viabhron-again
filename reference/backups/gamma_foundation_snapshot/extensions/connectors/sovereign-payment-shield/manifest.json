@@ -1,0 +1,26 @@
+{
+  "id": "sovereign-payment-shield",
+  "name": "Sovereign Payment Shield",
+  "description": "Enforcement of BIS/RBI security standards for encrypted QR and biometric payments.",
+  "type": "connector",
+  "author": "Viabhron Core",
+  "version": "1.0.0",
+  "capabilities": [
+    "bis_qr_encryption",
+    "rbi_biometric_2fa",
+    "8004_transaction_signing",
+    "fraud_sentinel_audit"
+  ],
+  "config": {
+    "metabolicThreshold": {
+      "type": "number",
+      "default": 50,
+      "description": "Amount above which biometric 2FA is mandatory."
+    },
+    "encryptionStandard": {
+      "type": "string",
+      "default": "AES-256-GCM",
+      "enum": ["AES-256-GCM", "RSA-4096"]
+    }
+  }
+}

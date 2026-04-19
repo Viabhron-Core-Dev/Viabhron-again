@@ -1,0 +1,6 @@
+# MOSS Loader manifest
+{
+  "name": "Moss Loader",
+  "version": "1.0.0",
+  "description": "Registry for MOSS ground-apps."
+}

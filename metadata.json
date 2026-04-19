@@ -1,0 +1,6 @@
+{
+  "name": "Viabhron MVK",
+  "description": "A Multi-Agent Operating System (MAOS) where agents run the building autonomously and the human Chairman ratifies decisions through the Vaa client.",
+  "requestFramePermissions": ["notifications", "geolocation", "camera", "microphone"],
+  "majorCapabilities": []
+}

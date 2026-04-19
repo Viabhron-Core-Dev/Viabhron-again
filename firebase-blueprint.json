@@ -1,0 +1,77 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Information about the Chairman",
+      "type": "object",
+      "properties": {
+        "officeName": { "type": "string" },
+        "focus": { "type": "string" },
+        "provisionedAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string" },
+        "role": { "type": "string" }
+      },
+      "required": ["officeName", "role"]
+    },
+    "Agent": {
+      "title": "AI Agent",
+      "description": "Resident or sub-agent in the Viabhron OS",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "provider": { "type": "string" },
+        "model": { "type": "string" },
+        "status": { "type": "string" },
+        "isResident": { "type": "boolean" },
+        "isStaff": { "type": "boolean" },
+        "color": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["name", "role", "status"]
+    },
+    "Secret": {
+      "title": "Sovereign Secret",
+      "description": "Encrypted API keys or sensitive strings",
+      "type": "object",
+      "properties": {
+        "label": { "type": "string" },
+        "value": { "type": "string" },
+        "type": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["label", "value", "type"]
+    },
+    "Moss": {
+      "title": "Moss App",
+      "description": "Mini-app or micro-service available in the landscape",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "icon": { "type": "string" },
+        "status": { "type": "string" },
+        "isFrozen": { "type": "boolean" }
+      },
+      "required": ["name", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/settings/identity": {
+      "schema": "User",
+      "description": "Chairman's sovereign identity settings"
+    },
+    "/users/{userId}/agents/{agentId}": {
+      "schema": "Agent",
+      "description": "Agents owned by the Chairman"
+    },
+    "/users/{userId}/secrets/{secretId}": {
+      "schema": "Secret",
+      "description": "Secrets stored by the Chairman"
+    },
+    "/users/{userId}/moss/{mossId}": {
+      "schema": "Moss",
+      "description": "Apps installed/managed by the Chairman"
+    }
+  }
+}
