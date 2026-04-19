@@ -1,21 +1,18 @@
-<div align="center">
-   https://viabhron-core-dev.github.io/Viabhron-again/
-<img width="1200" height="475" alt="GHBanner" 
-</div>
+# 🛡️ VIABHRON MVK: Modular Viable Kernel
 
-# Run and deploy your AI Studio app
+The Modular Viable Kernel (MVK) is an AI-centric operating system designed for sovereignty and executive coordination.
 
-This contains everything you need to run your app locally.
+## 🚀 Live PWA
+You can access the live Sovereign Substrate here:
+**[https://viabhron-core-dev.github.io/Viabhron-again/](https://viabhron-core-dev.github.io/Viabhron-again/)**
 
-View your app in AI Studio: https://ai.studio/apps/5d96e019-0957-4e5d-8633-a90545818cef
+## 📱 Features
+- **Sovereign Vaa**: High-level administrative interface for agent ratification.
+- **MOSS Layer**: Mini-app substrate for localized utility (Pulse Monitor, etc.).
+- **Dual-Mode**: Hardware-aware kernel supporting PWA and Android APK substrates.
 
-## Run Locally
+## 🛠️ Deployment
+This project is built with React, Vite, and Tailwind CSS. It is fully PWA-compatible and can be wrapped as a native APK using Capacitor.
 
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+---
+*Created via Google AI Studio Build*
