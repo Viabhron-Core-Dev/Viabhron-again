@@ -1,17 +1,18 @@
 # 🛡️ VIABHRON MVK: Modular Viable Kernel
-## Blueprint & Project Manifest v6.0
+## Blueprint & Project Manifest v6.1
 
 ### 1. Core Concept
-Viabhron is an AI-centric operating system. In this model, agents are the primary users of the computer, while the human (Chairman) acts as a supervisor and ratifier through the **Vaa** client. The MVK is designed to be hardware-aware, supporting native deployment via PWA or APK substrates.
+Viabhron is an AI-centric operating system. In this model, agents are the primary users of the computer, while the human (Chairman) acts as a supervisor and ratifier through the **Vaa** client. The MVK is designed to be hardware-aware, supporting native deployment via PWA or APK substrates. **Version 6.1 includes optimized asset resolution for subdirectory deployments (e.g., GitHub Pages).**
 
 ### 2. File Structure & Component Breakdown
 
 #### Root Configuration
 - `server.ts`: Full-stack entry point. Handles static serving and API Intercom.
 - `package.json`: Dependency manifest including PWA and Capacitor bridges.
-- `vite.config.ts`: Configured with the **Vite PWA Plugin** for manifest management and 4MB Workbox precaching.
+- `vite.config.ts`: Configured with `base: '/Viabhron-again/'` for GitHub Pages compatibility and 4MB Workbox precaching.
 - `capacitor.config.ts`: Native Android substrate definition for APK generation.
 - `metadata.json`: App permissions (Camera/Mic) and identity.
+- `index.html`: Entry point. Uses relative script paths (`./src/main.tsx`) to ensure asset resolution in subdirectories.
 
 #### `/src` - Frontend Source
 - `App.tsx`: The **Kernel Orchestrator**. Manages the phase transition from Setup -> Onboarding -> Vaa.
