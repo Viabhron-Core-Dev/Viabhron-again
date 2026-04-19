@@ -7,7 +7,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   return {
-    base: '/Viabhron-again/',
+    base: '',
     plugins: [
       react(), 
       tailwindcss(),
@@ -22,8 +22,8 @@ export default defineConfig(({mode}) => {
           background_color: '#0B141A', // Space Dark
           display: 'standalone',
           orientation: 'portrait',
-          scope: '/Viabhron-again/',
-          start_url: '/Viabhron-again/',
+          scope: './',
+          start_url: './',
           icons: [
             {
               src: 'pwa-192x192.png',

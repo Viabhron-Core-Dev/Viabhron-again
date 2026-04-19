@@ -1,6 +1,6 @@
 # 🛡️ VIABHRON MVK: Modular Viable Kernel
 
-The Modular Viable Kernel (MVK) is an AI-centric operating system designed for sovereignty and executive coordination.
+The Modular Viable Kernel (MVK) is an AI-centric operating system.
 
 ## 🚀 Live PWA
 You can access the live Sovereign Substrate here:
