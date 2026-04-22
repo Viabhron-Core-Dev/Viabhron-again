@@ -15,11 +15,14 @@ import {
   Eye,
   EyeOff,
   Check,
-  X
+  X,
+  Brain
 } from "lucide-react";
 import * as Icons from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Secret } from "../../types";
+
+import { TerminalAccreditation } from "./TerminalAccreditation";
 
 interface VaaSettingsProps {
   onClose: () => void;
@@ -52,7 +55,8 @@ export const VaaSettings: React.FC<VaaSettingsProps> = ({
   canInstallPwa,
   onInstallPwa
 }) => {
-  const [subPage, setSubPage] = useState<"main" | "filters" | "secrets">("main");
+  const [subPage, setSubPage] = useState<"main" | "filters" | "secrets" | "services">("main");
+  const [showAccreditation, setShowAccreditation] = useState(false);
   const [showAddSecret, setShowAddSecret] = useState(false);
   const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
   const [purgeInput, setPurgeInput] = useState("");
@@ -134,6 +138,170 @@ export const VaaSettings: React.FC<VaaSettingsProps> = ({
             </div>
           </div>
           <p className="text-[10px] text-slate-400 text-center uppercase tracking-widest font-bold">Use arrows to adjust order</p>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (subPage === "services") {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: 20 }}
+        className="absolute inset-0 bg-slate-50 z-[100] flex flex-col"
+      >
+        <div className="p-6 bg-white border-b border-slate-100 flex items-center gap-4 pt-safe">
+          <button onClick={() => setSubPage("main")} className="p-2 hover:bg-slate-50 rounded-full transition-colors">
+            <ArrowLeft className="w-6 h-6 text-slate-600" />
+          </button>
+          <h2 className="text-xl font-bold text-slate-800">Vaa Services</h2>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6 space-y-8">
+          <section className="space-y-4">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest text-indigo-500">Relay & Transmission</h3>
+            
+            {/* Multi-Terminal Relay */}
+            <div className="bg-white rounded-3xl p-4 border border-slate-100 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between border-b border-slate-50 pb-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center">
+                    <Icons.Monitor className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-slate-700">Accredited Terminals</div>
+                    <div className="text-[10px] text-slate-400 text-indigo-600 font-bold uppercase tracking-widest">Ghost Hands Protocol</div>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowAccreditation(true)}
+                  className="p-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all"
+                  title="Accredit New Terminal"
+                >
+                  <Plus className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {[
+                  { name: "ThinkPad-Primary", id: "SOV-9122", status: "Active" },
+                  { name: "Office-Desktop", id: "SOV-4410", status: "Offline" }
+                ].map((t) => (
+                  <div key={t.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl group">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                      <div>
+                        <div className="text-xs font-bold text-slate-800">{t.name}</div>
+                        <div className="text-[9px] text-slate-400 font-mono">{t.id}</div>
+                      </div>
+                    </div>
+                    <button className="opacity-0 group-hover:opacity-100 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                      <Icons.Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Multi-Account Gmail */}
+            <div className="bg-white rounded-3xl p-4 border border-slate-100 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between border-b border-slate-50 pb-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center">
+                    <Icons.Mail className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-slate-700">Gmail Identities</div>
+                    <div className="text-[10px] text-slate-400 text-indigo-600 font-bold uppercase tracking-widest">Sovereign Direct Relay</div>
+                  </div>
+                </div>
+                <button 
+                  className="p-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all"
+                  title="Link New Identity"
+                >
+                  <Plus className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {[
+                  { email: "elvilewis40@gmail.com", mode: "Executive" },
+                  { email: "nexus.hq@gmail.com", mode: "Sentinel" }
+                ].map((acc) => (
+                  <div key={acc.email} className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[10px] font-black text-indigo-600 border border-slate-100 shadow-sm">
+                        {acc.email.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-slate-800">{acc.email}</div>
+                        <div className="text-[9px] text-slate-400 font-black uppercase tracking-widest">{acc.mode} Mode</div>
+                      </div>
+                    </div>
+                    <button className="w-10 h-5 bg-indigo-600 rounded-full relative cursor-pointer">
+                      <div className="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow-sm" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="space-y-4">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Local Intelligence</h3>
+            <div className="bg-white rounded-3xl p-4 border border-slate-100 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center">
+                    <Brain className="w-5 h-5 text-slate-600" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-slate-700">Local Agent Protocol</div>
+                    <div className="text-[10px] text-slate-400">Tap Ω for offline-first agent</div>
+                  </div>
+                </div>
+                <button className="w-12 h-6 bg-slate-200 rounded-full relative cursor-pointer">
+                  <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
+                </button>
+              </div>
+
+              <button className="w-full flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200 hover:border-indigo-400 hover:bg-slate-100 transition-all group">
+                <Plus className="w-5 h-5 text-slate-300 group-hover:text-indigo-500" />
+                <div className="text-left">
+                  <div className="text-sm font-bold text-slate-500 group-hover:text-slate-800">Hatch Local Mind</div>
+                  <div className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Import Weights (.gguf, .wasm)</div>
+                </div>
+              </button>
+            </div>
+          </section>
+
+          <section className="space-y-4">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Passive Intelligence</h3>
+            <div className="bg-white rounded-3xl p-4 border border-slate-100 space-y-4 shadow-sm">
+              {[
+                { icon: <Icons.Languages className="text-orange-600" />, label: "Auto-Translation", desc: "Real-time message translation", bg: "bg-orange-50", active: true },
+                { icon: <Icons.Mic className="text-teal-600" />, label: "Speech to Text", desc: "Voice command recognition", bg: "bg-teal-50", active: false },
+                { icon: <Icons.EyeOff className="text-slate-600" />, label: "Stealth Mode", desc: "Silence all non-urgent agent pings", bg: "bg-slate-50", active: false },
+                { icon: <Icons.Lock className="text-rose-600" />, label: "Sovereign Tunnel", desc: "E2E Encryption protocol", bg: "bg-rose-50", active: true }
+              ].map((s) => (
+                <div key={s.label} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-2xl ${s.bg} flex items-center justify-center`}>
+                      {s.icon}
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-slate-700">{s.label}</div>
+                      <div className="text-[10px] text-slate-400">{s.desc}</div>
+                    </div>
+                  </div>
+                  <button className={`w-12 h-6 rounded-full relative cursor-pointer ${s.active ? 'bg-indigo-600' : 'bg-slate-200'}`}>
+                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${s.active ? 'right-1' : 'left-1'}`} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
       </motion.div>
     );
@@ -402,56 +570,23 @@ export const VaaSettings: React.FC<VaaSettingsProps> = ({
         </section>
 
         <section className="space-y-4">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Passive Services</h3>
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Substrate Logic</h3>
           <div className="bg-white rounded-3xl p-4 border border-slate-100 space-y-4">
-            <div className="flex items-center justify-between">
+            <button 
+              onClick={() => setSubPage("services")}
+              className="w-full flex items-center justify-between group"
+            >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-orange-50 flex items-center justify-center">
-                  <Icons.Languages className="w-5 h-5 text-orange-600" />
+                <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-indigo-600" />
                 </div>
-                <div>
-                  <div className="text-sm font-bold text-slate-700">Auto-Translation</div>
-                  <div className="text-[10px] text-slate-400">Real-time message translation</div>
-                </div>
-              </div>
-              <div className="w-12 h-6 bg-orange-600 rounded-full relative cursor-pointer">
-                <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full" />
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-teal-50 flex items-center justify-center">
-                  <Icons.Mic className="w-5 h-5 text-teal-600" />
-                </div>
-                <div>
-                  <div className="text-sm font-bold text-slate-700">Speech to Text</div>
-                  <div className="text-[10px] text-slate-400">Voice command recognition</div>
+                <div className="text-left">
+                  <div className="text-sm font-bold text-slate-700">Vaa Services</div>
+                  <div className="text-[10px] text-slate-400">Exclusive client-side extensions</div>
                 </div>
               </div>
-              <div className="w-12 h-6 bg-slate-200 rounded-full relative cursor-pointer">
-                <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-rose-50 flex items-center justify-center">
-                  <Icons.Lock className="w-5 h-5 text-rose-600" />
-                </div>
-                <div>
-                  <div className="text-sm font-bold text-slate-700">End-to-End Encryption</div>
-                  <div className="text-[10px] text-slate-400">Sovereign tunnel security</div>
-                </div>
-              </div>
-              <div className="w-12 h-6 bg-rose-600 rounded-full relative cursor-pointer">
-                <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full" />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="space-y-4">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Sovereignty</h3>
-          <div className="bg-white rounded-3xl p-4 border border-slate-100 space-y-4">
+              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-600 transition-colors" />
+            </button>
             <button 
               onClick={() => setSubPage("secrets")}
               className="w-full flex items-center justify-between group"
@@ -470,18 +605,64 @@ export const VaaSettings: React.FC<VaaSettingsProps> = ({
                 <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-600 transition-colors" />
               </div>
             </button>
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest text-indigo-500">Field Agent Sovereignty</h3>
+          <div className="bg-white rounded-3xl p-4 border border-slate-100 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-green-50 flex items-center justify-center">
-                  <ShieldCheck className="w-5 h-5 text-green-600" />
+                <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center">
+                  <Icons.Mail className="w-5 h-5 text-indigo-600" />
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-slate-700">Private Mode</div>
-                  <div className="text-[10px] text-slate-400">Local-first data processing</div>
+                  <div className="text-sm font-bold text-slate-700">Direct Mail Relay</div>
+                  <div className="text-[10px] text-slate-400">Direct header fetching (No AI)</div>
                 </div>
               </div>
-              <div className="w-12 h-6 bg-slate-200 rounded-full relative cursor-pointer">
+              <button className="w-12 h-6 bg-indigo-600 rounded-full relative cursor-pointer">
+                <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
+              </button>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center">
+                  <Brain className="w-5 h-5 text-slate-600" />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-slate-700">Local Agent Protocol</div>
+                  <div className="text-[10px] text-slate-400">Tap Ω for offline-first agent</div>
+                </div>
+              </div>
+              <button className="w-12 h-6 bg-zinc-200 rounded-full relative cursor-pointer">
                 <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
+              </button>
+            </div>
+
+            <button className="w-full flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200 hover:border-indigo-400 hover:bg-slate-100 transition-all group">
+              <Plus className="w-5 h-5 text-slate-300 group-hover:text-indigo-500" />
+              <div className="text-left">
+                <div className="text-sm font-bold text-slate-500 group-hover:text-slate-800">Hatch Local Intelligence</div>
+                <div className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Import Neural Weights (.gguf, .wasm)</div>
+              </div>
+            </button>
+
+            <div className="pt-2 border-t border-slate-50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center">
+                    <Icons.Zap className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-slate-700">Expert Bridge</div>
+                    <div className="text-[10px] text-slate-400">Connect to Viabhron Cloud Core</div>
+                  </div>
+                </div>
+                <button className="w-12 h-6 bg-indigo-600 rounded-full relative cursor-pointer">
+                  <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm" />
+                </button>
               </div>
             </div>
           </div>
@@ -629,6 +810,9 @@ export const VaaSettings: React.FC<VaaSettingsProps> = ({
                 </div>
               </motion.div>
             </motion.div>
+          )}
+          {showAccreditation && (
+            <TerminalAccreditation onClose={() => setShowAccreditation(false)} />
           )}
         </AnimatePresence>
       </div>

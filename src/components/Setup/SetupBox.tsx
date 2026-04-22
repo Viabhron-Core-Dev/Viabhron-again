@@ -189,7 +189,7 @@ export const SetupBox: React.FC<SetupBoxProps> = ({ onComplete }) => {
                 className="space-y-8 text-center"
               >
                 <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-500">
-                  <Shield size={40} />
+                  <Shield size={40} className="text-indigo-500" />
                 </div>
                 <div className="space-y-2">
                   <h1 className="text-4xl font-bold tracking-tight text-white">Viabhron MVK</h1>
@@ -198,10 +198,22 @@ export const SetupBox: React.FC<SetupBoxProps> = ({ onComplete }) => {
                 <div className="space-y-4">
                   <button
                     onClick={() => setStep('identity')}
-                    className="group flex w-full items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 font-semibold text-black transition-all hover:bg-zinc-200"
+                    className="group flex w-full items-center justify-center gap-4 rounded-2xl bg-white px-8 py-5 font-bold text-black transition-all hover:bg-zinc-200"
                   >
-                    Ignite OS Substrate
-                    <Zap size={20} className="transition-transform group-hover:scale-110" />
+                    Ignite Sovereign Substrate
+                    <Zap size={22} className="text-indigo-600 transition-transform group-hover:scale-110" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      localStorage.setItem('viabhron_provisioned', 'true');
+                      localStorage.setItem('viabhron_onboarding_completed', 'true');
+                      // Set a flag that building is not yet provisioned
+                      localStorage.setItem('viabhron:building-status', 'unprovisioned');
+                      window.location.reload();
+                    }}
+                    className="w-full py-4 text-xs font-black text-zinc-500 hover:text-zinc-300 uppercase tracking-[0.2em] transition-colors"
+                  >
+                    Standalone Field Mode (Offline First)
                   </button>
                 </div>
               </motion.div>
@@ -215,12 +227,12 @@ export const SetupBox: React.FC<SetupBoxProps> = ({ onComplete }) => {
                 exit={{ opacity: 0, x: -20 }}
                 className="space-y-8 text-center"
               >
-                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-500">
+                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-500">
                   <Cloud size={40} />
                 </div>
                 <div className="space-y-2">
-                  <h2 className="text-2xl font-bold text-white">Sovereign Identity</h2>
-                  <p className="text-zinc-400 font-medium">Connect your Google Cloud project to host your agents.</p>
+                  <h2 className="text-2xl font-bold text-white tracking-tight">BYO Identity & Infrastructure</h2>
+                  <p className="text-zinc-400 text-sm leading-relaxed">Vaa will use your Google credentials to discover and provision your own private Firebase & Cloud Run building.</p>
                 </div>
                 
                 {error && (
@@ -377,11 +389,12 @@ export const SetupBox: React.FC<SetupBoxProps> = ({ onComplete }) => {
                       </div>
                     )}
 
-                    <div className="rounded-xl bg-zinc-950 p-6 text-left text-[10px] text-zinc-500 font-mono uppercase tracking-widest space-y-1">
-                      <p>• PROVIDER: GOOGLE CLOUD</p>
-                      <p>• SOUL CORE: FIRESTORE</p>
-                      <p>• RESIDENT: OLLAMA CONTEXT</p>
-                    </div>
+                <div className="rounded-xl bg-zinc-950 p-6 text-left text-[10px] text-zinc-500 font-mono uppercase tracking-widest space-y-1">
+                  <p>• PROVIDER: GOOGLE CLOUD</p>
+                  <p>• SOUL CORE: FIRESTORE</p>
+                  <p>• ARCHITECTURE: MANAGER-CONTRACTOR</p>
+                  <p className="text-indigo-400 mt-2">Note: You can import Local AI weights in settings after ignition.</p>
+                </div>
 
                     <button
                       onClick={handleIgnition}

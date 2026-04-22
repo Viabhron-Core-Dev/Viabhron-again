@@ -148,36 +148,11 @@ export interface NewsCard {
   id: string;
   title: string;
   summary: string;
-  fullContent?: string;
+  fullContent: string;
   source: string;
   timestamp: string;
-  category: "Critical" | "Metabolism" | "Models" | "Insight";
-  link?: string;
-}
-
-export interface IntelligenceChannel {
-  id: string;
-  name: string;
-  avatar?: string;
-  type: 'github' | 'huggingface' | 'system';
-  isOfficial?: boolean;
-  isFollowing?: boolean;
-  lastPulse?: string;
-  description?: string;
-}
-
-export interface IntelligencePulse {
-  id: string;
-  channelId: string;
-  content: string;
-  timestamp: string;
-  type: 'commit' | 'model_release' | 'trending' | 'alert';
-  metadata?: {
-    repo?: string;
-    modelId?: string;
-    url?: string;
-    [key: string]: any;
-  };
+  category: string;
+  imageUrl?: string;
 }
 
 export interface NewsFilter {
@@ -205,6 +180,7 @@ export interface MCPServer {
   createdAt: string;
   status?: string;
   isEnabled?: boolean;
+  isDev?: boolean;
 }
 
 export interface AIChannel {
@@ -226,7 +202,7 @@ export interface AIChannel {
 
 export interface WorkflowNode {
   id: string;
-  type: "agent" | "mcp" | "skill" | "connector" | "input" | "output" | "trigger" | "logic" | "data" | "prompt";
+  type: "agent" | "mcp" | "skill" | "connector" | "input" | "output" | "trigger" | " logic" | "data" | "prompt";
   name: string;
   x: number;
   y: number;
@@ -365,7 +341,7 @@ export interface Agent {
   lastActive: Date;
 }
 
-export type UIMode = 'vaa' | 'browser' | 'expert';
+export type UIMode = 'vaa' | 'browser';
 
 export interface UIConfig {
   theme: 'dark' | 'light' | 'custom';
@@ -410,13 +386,6 @@ export interface CanvasEdge {
   targetHandle: string;
 }
 
-export interface InteractiveOption {
-  id: string;
-  label: string;
-  action: string;
-  type?: 'primary' | 'secondary' | 'terminal' | 'relay' | 'danger';
-}
-
 export interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';
@@ -426,7 +395,6 @@ export interface Message {
   jobId?: string;
   nodeId?: string;
   type?: "text" | "email-metadata";
-  interactiveOptions?: InteractiveOption[];
   metadata?: {
     from?: string;
     subject?: string;
@@ -541,7 +509,7 @@ export interface SupplyChainAudit {
   id: string;
   target: string;
   timestamp: string;
-  status: 'clean' | 'blocked' | 'warning';
+  status: ' clean' | 'blocked' | 'warning';
   findings: string[];
 }
 
@@ -665,7 +633,7 @@ export interface Spore {
   id: string;
   targetDeviceId: string;
   status: 'airborne' | 'landed' | 'harvesting' | 'complete';
-  missionBrief: string;
+   missionBrief: string;
   metabolism: {
     cpuUsage: number;
     memoryUsage: number;

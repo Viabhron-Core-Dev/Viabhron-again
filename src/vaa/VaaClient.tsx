@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { 
   MessageSquare, 
   Users, 
@@ -67,6 +67,8 @@ import {
   CanvasNode,
   CanvasEdge,
   NewsCard,
+  IntelligenceChannel,
+  IntelligencePulse,
   Extension,
   Moss,
   Secret
@@ -87,6 +89,7 @@ import { HQExtensionsVault } from "./components/HQExtensionsVault";
 import { SearchAndFilters, WorkflowTab } from "./components/Misc";
 import { CameraCapture, QRScanner } from "./components/MediaTools";
 import { ContactList } from "./components/ContactList";
+import { DiscoveryHub } from "./components/DiscoveryHub";
 import { MossLoader } from "../moss/MossLoader";
 
 interface VaaClientProps {
@@ -162,6 +165,75 @@ export const VaaClient: React.FC<VaaClientProps> = ({
   const allMoss = [...systemMoss, ...moss.filter(m => m.id !== 'ma-pulse')];
 
   const [lastOpenedAppIdState, setLastOpenedAppIdState] = useState<string | null>('ma-pulse');
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [omegaPressing, setOmegaPressing] = useState<'none' | 'tapping' | 'holding'>('none');
+  const pressTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const startOmegaPress = () => {
+    setOmegaPressing('tapping');
+    pressTimer.current = setTimeout(() => {
+      setOmegaPressing('holding');
+      // Trigger haptic if native
+      if (isNative && triggerVibration) triggerVibration();
+    }, 600);
+  };
+
+  const endOmegaPress = () => {
+    if (pressTimer.current) {
+      clearTimeout(pressTimer.current);
+      pressTimer.current = null;
+    }
+
+    if (omegaPressing === 'holding') {
+      // Long press -> Resident Architect
+      setSelectedChat(headAgentChat);
+    } else if (omegaPressing === 'tapping') {
+      // Single tap -> Local Agent
+      const localAgentChat: CelestialChat = {
+        id: 'local-pulse',
+        name: 'Local Pulse',
+        type: 'agent',
+        messages: [
+          {
+            id: "lp1",
+            role: "assistant",
+            content: "Local Pulse active. Offline intelligence substrate responsive. I am your standalone Field Agent.",
+            timestamp: new Date().toISOString()
+          }
+        ],
+        updatedAt: Date.now(),
+        isHeadAgent: false,
+        filterCategory: 'Local'
+      };
+      setSelectedChat(localAgentChat);
+    }
+    setOmegaPressing('none');
+  };
+
+  useEffect(() => {
+    const handleFocusIn = (e: FocusEvent) => {
+      const target = e.target as HTMLElement;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
+        setIsInputFocused(true);
+      }
+    };
+    const handleFocusOut = () => {
+      // Small timeout to prevent flickering when jumping between inputs
+      setTimeout(() => {
+        const activeElement = document.activeElement;
+        if (!activeElement || (activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA')) {
+          setIsInputFocused(false);
+        }
+      }, 50);
+    };
+
+    window.addEventListener('focusin', handleFocusIn);
+    window.addEventListener('focusout', handleFocusOut);
+    return () => {
+      window.removeEventListener('focusin', handleFocusIn);
+      window.removeEventListener('focusout', handleFocusOut);
+    };
+  }, []);
   const [isAppFullscreen, setIsAppFullscreen] = useState(() => {
     return localStorage.getItem('viabhron:vaa:app-fullscreen') === 'true';
   });
@@ -242,6 +314,32 @@ export const VaaClient: React.FC<VaaClientProps> = ({
   const [activeChatFilters, setActiveChatFilters] = useState(["All", "Semi Local", "Cloudflare", "GitHub", "Gmail"]);
   const [chats, setChats] = useState<CelestialChat[]>([]);
   
+  const [showDiscoveryHub, setShowDiscoveryHub] = useState(false);
+  const [intelligenceChannels, setIntelligenceChannels] = useState<IntelligenceChannel[]>([
+    { id: 'gh-ms', name: 'Microsoft', type: 'github', isFollowing: true, lastPulse: '12m ago' },
+    { id: 'gh-meta', name: 'Meta AI', type: 'github', isFollowing: true, lastPulse: '1h ago' },
+    { id: 'hf-deepseek', name: 'DeepSeek', type: 'huggingface', isFollowing: true, lastPulse: '2h ago' }
+  ]);
+  const [intelligencePulses, setIntelligencePulses] = useState<IntelligencePulse[]>([
+    { id: 'p1', channelId: 'gh-ms', content: "OpenSauced is trending with 1.2k stars today.", timestamp: '12m ago', type: 'trending' },
+    { id: 'p2', channelId: 'hf-deepseek', content: "DeepSeek-V3 checkpoints published on Hub.", timestamp: '2h ago', type: 'model_release' },
+    { id: 'p3', channelId: 'gh-meta', content: "Llama-3 (8B) quantized versions released.", timestamp: '4h ago', type: 'model_release' }
+  ]);
+
+  const hasGithubKey = secrets.some(s => s.label.toLowerCase().includes('github') && s.value);
+  const hasHFKey = secrets.some(s => s.label.toLowerCase().includes('huggingface') && s.value);
+
+  const handleFollowChannel = (channel: IntelligenceChannel) => {
+    setIntelligenceChannels(prev => {
+      const exists = prev.find(c => c.id === channel.id);
+      if (exists) {
+        return prev.map(c => c.id === channel.id ? { ...c, isFollowing: !c.isFollowing } : c);
+      }
+      return [...prev, { ...channel, isFollowing: true }];
+    });
+    toast.success(`${channel.isFollowing ? 'Unfollowed' : 'Following'} ${channel.name}`);
+  };
+
   const contentRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const newsMenuRef = useRef<HTMLDivElement>(null);
@@ -255,8 +353,7 @@ export const VaaClient: React.FC<VaaClientProps> = ({
 
   const displayTabs = [TABS[TABS.length - 1], ...TABS, TABS[0]];
 
-  useEffect(() => {
-    // Initialize chats
+  const initialAgentsChats = useMemo(() => {
     const residentAgent = agents.find(a => a.isResident && a.role === 'head');
     
     const agentNodes: CelestialChat[] = agents
@@ -268,12 +365,12 @@ export const VaaClient: React.FC<VaaClientProps> = ({
         lastMessage: agent.description || "System Agent ready for deployment.",
         messages: [],
         type: "agent",
-        updatedAt: Date.now(),
+        updatedAt: 0, // Using fixed value or relying on updates
         isHeadAgent: agent.role === 'head',
         filterCategory: agent.isResident ? "Semi Local" : "Corporate"
       }));
 
-    const initialChats: CelestialChat[] = [
+    const staticChats: CelestialChat[] = [
       {
         id: "my-notes",
         nodeId: "user-self",
@@ -281,7 +378,7 @@ export const VaaClient: React.FC<VaaClientProps> = ({
         lastMessage: "Chairman's private scratchpad initiated.",
         messages: [],
         type: "agent",
-        updatedAt: Date.now(),
+        updatedAt: 1,
         filterCategory: "Semi Local",
         isSelf: true
       },
@@ -295,12 +392,12 @@ export const VaaClient: React.FC<VaaClientProps> = ({
             id: "cm1",
             role: "assistant",
             content: "Welcome back, Chairman. The Sovereign Kernel is stable. I am your Resident Agent, managing the private cloud substrate. How shall we proceed?",
-            timestamp: new Date().toISOString()
+            timestamp: "2024-01-01T00:00:00Z"
           }
         ],
         type: "agent",
         isHeadAgent: true,
-        updatedAt: Date.now(),
+        updatedAt: 2,
         filterCategory: "Semi Local"
       },
       {
@@ -312,24 +409,24 @@ export const VaaClient: React.FC<VaaClientProps> = ({
             id: "s1",
             role: "assistant",
             content: "[INFO] Viabhron Kernel initialized successfully.",
-            timestamp: new Date().toISOString()
+            timestamp: "2024-01-01T00:00:00Z"
           },
           {
             id: "s2",
             role: "assistant",
             content: "[SUCCESS] Sovereign Listener Bridge connected.",
-            timestamp: new Date().toISOString()
+            timestamp: "2024-01-01T00:00:01Z"
           },
           {
             id: "s3",
             role: "assistant",
             content: "[WARN] High memory usage detected in Node-7.",
-            timestamp: new Date().toISOString()
+            timestamp: "2024-01-01T00:00:02Z"
           }
         ],
         type: "sentinel",
         isSentinel: true,
-        updatedAt: Date.now(),
+        updatedAt: 3,
         filterCategory: "Semi Local"
       },
       {
@@ -341,12 +438,12 @@ export const VaaClient: React.FC<VaaClientProps> = ({
             id: "gw1", 
             role: "assistant", 
             content: "[GLASSWING BRIEFING] I have identified a potential privilege escalation flaw in the 'Extra Processor' node manifest. This flaw is similar to the 27-year-old OpenBSD bug recently disclosed. I have a Sovereign Patch ready for ratification.", 
-            timestamp: new Date().toISOString(),
+            timestamp: "2024-01-01T00:00:00Z",
             metadata: { type: "security-alert", severity: "high" }
           }
         ],
         type: "agent",
-        updatedAt: Date.now(),
+        updatedAt: 4,
         filterCategory: "Cloudflare"
       },
       {
@@ -358,24 +455,27 @@ export const VaaClient: React.FC<VaaClientProps> = ({
             id: "mc1", 
             role: "assistant", 
             content: "[MISSION LOG] Finance Auditor Agent has successfully connected to the UiPath Orchestrator substrate. Primary User status confirmed.", 
-            timestamp: new Date().toISOString()
+            timestamp: "2024-01-01T00:00:00Z"
           },
           { 
             id: "mc2", 
             role: "assistant", 
             content: "[STATUS] Healthcare Claims Worker synthesis at 45%. Adversarial Auditor is currently vetting the automation manifest.", 
-            timestamp: new Date().toISOString()
+            timestamp: "2024-01-01T00:00:01Z"
           }
         ],
         type: "agent",
-        updatedAt: Date.now(),
+        updatedAt: 5,
         filterCategory: "Corporate"
-      },
-      ...agentNodes
+      }
     ];
 
-    setChats(initialChats);
+    return [...staticChats, ...agentNodes];
   }, [agents]);
+
+  useEffect(() => {
+    setChats(initialAgentsChats);
+  }, [initialAgentsChats]);
 
   const headAgentChat = chats.find(c => c.isHeadAgent);
 
@@ -531,6 +631,9 @@ export const VaaClient: React.FC<VaaClientProps> = ({
             agents={agents}
             newsCards={newsCards}
             onCardTap={handleNewsCardTap}
+            onOpenDiscovery={() => setShowDiscoveryHub(true)}
+            channels={intelligenceChannels}
+            pulses={intelligencePulses}
           />
         );
       case "workflow":
@@ -647,6 +750,18 @@ export const VaaClient: React.FC<VaaClientProps> = ({
     <div className="h-full flex flex-col bg-white relative overflow-hidden font-sans selection:bg-wa-header/10 pt-safe pb-safe">
       <Toaster position="top-center" richColors />
       
+      <AnimatePresence>
+        {showDiscoveryHub && (
+          <DiscoveryHub 
+            onClose={() => setShowDiscoveryHub(false)}
+            hasGithub={hasGithubKey}
+            hasHF={hasHFKey}
+            onFollow={handleFollowChannel}
+            followingIds={intelligenceChannels.filter(c => c.isFollowing).map(c => c.id)}
+          />
+        )}
+      </AnimatePresence>
+
       <AnimatePresence mode="wait">
         {view === "workflow" ? (
           <motion.div 
@@ -784,15 +899,51 @@ export const VaaClient: React.FC<VaaClientProps> = ({
         </div>
 
         {/* Global Sovereign Action Stack (Omega + FAB) */}
-        {!isAnyAppActive && (
+        {!isAnyAppActive && !isInputFocused && (
           <div className="absolute bottom-8 right-6 flex flex-col gap-4 items-center z-50 mb-safe mr-safe">
-            <button 
-              onClick={() => setSelectedChat(headAgentChat)}
-              className="w-14 h-14 bg-wa-accent text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform active:scale-95 z-30 ring-4 ring-white"
-            >
-              <span className="text-2xl font-bold">Ω</span>
-              <div className="absolute -top-1 -right-1 w-5 h-5 bg-indigo-600 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold">3</div>
-            </button>
+            <div className="relative">
+              {/* Dynamic Aura */}
+              <AnimatePresence>
+                {omegaPressing === 'holding' && (
+                  <motion.div 
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1.5, opacity: 0.3 }}
+                    exit={{ scale: 2, opacity: 0 }}
+                    className="absolute inset-0 bg-indigo-500 rounded-full blur-xl z-20"
+                  />
+                )}
+                {omegaPressing === 'tapping' && (
+                  <motion.div 
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1.2, opacity: 0.2 }}
+                    exit={{ scale: 1.5, opacity: 0 }}
+                    className="absolute inset-0 bg-slate-400 rounded-full blur-md z-20"
+                  />
+                )}
+              </AnimatePresence>
+              
+              <button 
+                onMouseDown={startOmegaPress}
+                onMouseUp={endOmegaPress}
+                onMouseLeave={() => {
+                  if (pressTimer.current) {
+                    clearTimeout(pressTimer.current);
+                    pressTimer.current = null;
+                  }
+                  setOmegaPressing('none');
+                }}
+                onTouchStart={startOmegaPress}
+                onTouchEnd={endOmegaPress}
+                className={`w-14 h-14 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all active:scale-95 z-30 ring-4 ring-white relative ${
+                  omegaPressing === 'holding' ? 'bg-indigo-600' : 'bg-wa-accent'
+                }`}
+              >
+                <span className="text-2xl font-bold">Ω</span>
+                {omegaPressing === 'none' && (
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-indigo-600 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold">3</div>
+                )}
+              </button>
+            </div>
 
             {!selectedChat && (
               <div className="relative">
@@ -886,7 +1037,7 @@ export const VaaClient: React.FC<VaaClientProps> = ({
       </div>
 
       {/* Bottom Navigation */}
-      {!isAnyAppActive && !selectedChat && (
+      {!isAnyAppActive && !selectedChat && !isInputFocused && (
         <div className="bg-white border-t border-slate-100 px-6 py-3 flex justify-between items-center z-40 pb-safe">
           {[
             { id: "chats", label: "CHATS", icon: <Sparkles className="w-7 h-7" /> },

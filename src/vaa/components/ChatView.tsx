@@ -50,6 +50,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
   menuRef 
 }) => {
   const [input, setInput] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
   const [isCalling, setIsCalling] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [isSearchMode, setIsSearchMode] = useState(false);
@@ -59,6 +60,10 @@ export const ChatView: React.FC<ChatViewProps> = ({
   
   const isSentinel = chat.isSentinel || chat.type === 'sentinel';
   const isOmega = chat.isHeadAgent;
+  const isLocal = chat.id === 'local-pulse';
+
+  const accentColor = isLocal ? 'indigo-400' : isOmega ? 'wa-header' : 'wa-accent';
+  const headerBg = isLocal ? 'bg-slate-50' : 'bg-white';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -99,7 +104,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
   return (
     <div className="flex flex-col h-full bg-white relative overflow-hidden">
       {/* Chat Header */}
-      <div className="bg-indigo-600 text-white p-4 flex items-center gap-3 shadow-md z-[100]">
+      <div className={`${isLocal ? 'bg-slate-600' : 'bg-indigo-600'} text-white p-4 flex items-center gap-3 shadow-md z-[100]`}>
         {isSearchMode ? (
           <div className="flex-1 flex items-center gap-3 bg-white/10 rounded-xl px-3 py-2">
             <Search className="w-4 h-4 text-white/70" />
@@ -126,12 +131,15 @@ export const ChatView: React.FC<ChatViewProps> = ({
               onClick={() => setShowProfile(true)}
             >
               <div className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center text-xl font-bold border border-white/10 overflow-hidden flex-shrink-0">
-                {chat.type === 'gmail' ? <Mail className="w-5 h-5" /> : isSentinel ? <Terminal className="w-5 h-5" /> : isOmega ? "Ω" : <User className="w-5 h-5" />}
+                {isLocal ? <Cpu className="w-5 h-5" /> : chat.type === 'gmail' ? <Mail className="w-5 h-5" /> : isSentinel ? <Terminal className="w-5 h-5" /> : isOmega ? "Ω" : <User className="w-5 h-5" />}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold truncate text-lg leading-tight">{chat.name}</h3>
+                <h3 className="font-bold truncate text-lg leading-tight">
+                  {chat.name}
+                  {isLocal && <span className="ml-2 text-[8px] bg-white/20 px-1 rounded">LOCAL</span>}
+                </h3>
                 <p className="text-[9px] font-bold text-white/70 uppercase tracking-widest">
-                  {chat.isSelf ? "Private Scratchpad (Nucleus Buffer)" : isSentinel ? "System Monitoring Active" : isOmega ? "Sovereign Brain Active" : "Celestial Engine Active"}
+                  {isLocal ? "Standalone Pulse Protocol" : chat.isSelf ? "Private Scratchpad (Nucleus Buffer)" : isSentinel ? "System Monitoring Active" : isOmega ? "Sovereign Brain Active" : "Celestial Engine Active"}
                 </p>
               </div>
             </div>
@@ -208,9 +216,38 @@ export const ChatView: React.FC<ChatViewProps> = ({
                   : '-left-2 bg-white'
               }`} style={{ clipPath: msg.role === 'user' ? 'polygon(0 0, 0 100%, 100% 0)' : 'polygon(100% 0, 100% 100%, 0 0)' }}></div>
 
-              <div className="pr-12">
-                {msg.content}
+              <div className="flex items-start justify-between gap-4">
+                {msg.content && (
+                  <div className="flex-1 min-w-0 break-words">
+                    {msg.content}
+                  </div>
+                )}
+                
+                <button className="opacity-0 group-hover:opacity-100 p-1 -mt-1 -mr-1 text-slate-300 hover:text-slate-500 rounded-lg hover:bg-slate-50 transition-all">
+                  <MoreVertical className="w-3.5 h-3.5" />
+                </button>
               </div>
+
+              {/* Interactive Options */}
+              {msg.interactiveOptions && msg.interactiveOptions.length > 0 && (
+                <div className={`flex flex-wrap gap-2 ${msg.content ? 'mt-3' : 'mt-0'}`}>
+                  {msg.interactiveOptions.map((opt) => (
+                    <button
+                      key={opt.id}
+                      onClick={() => onSendMessage(opt.action)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all shadow-sm active:scale-95 ${
+                        opt.type === 'primary' ? 'bg-indigo-600 text-white shadow-indigo-100 hover:bg-indigo-700' :
+                        opt.type === 'danger' ? 'bg-red-500 text-white shadow-red-100 hover:bg-red-600' :
+                        opt.type === 'terminal' ? 'bg-slate-800 text-white font-mono' :
+                        opt.type === 'relay' ? 'bg-amber-500 text-white shadow-amber-100' :
+                        'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
               
               {msg.sanitizationReport && (
                 <div className="mt-2 pt-2 border-t border-slate-100 flex items-center gap-2">
@@ -232,6 +269,28 @@ export const ChatView: React.FC<ChatViewProps> = ({
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Quick Action Bar (Mirrors last message options) */}
+      <AnimatePresence>
+        {!isFocused && chat.messages.length > 0 && chat.messages[chat.messages.length - 1].role === 'assistant' && chat.messages[chat.messages.length - 1].interactiveOptions && (
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 20, opacity: 0 }}
+            className="px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar bg-white/50 backdrop-blur-sm border-t border-slate-100"
+          >
+            {chat.messages[chat.messages.length - 1].interactiveOptions?.map((opt) => (
+              <button
+                key={`qa-${opt.id}`}
+                onClick={() => onSendMessage(opt.action)}
+                className="flex-shrink-0 px-4 py-2 bg-white border border-slate-200 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-600 shadow-sm hover:border-indigo-400 hover:text-indigo-600 transition-all active:scale-95"
+              >
+                {opt.label}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Input Area */}
       <div className="p-3 bg-[#f0f2f5] flex items-end gap-2">
         {isSentinel ? (
@@ -248,6 +307,8 @@ export const ChatView: React.FC<ChatViewProps> = ({
                 placeholder="Type a message"
                 className="flex-1 bg-transparent outline-none text-[15px] text-slate-800 py-1 resize-none max-h-[150px]"
                 value={input}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
