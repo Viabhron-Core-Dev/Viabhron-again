@@ -308,6 +308,15 @@ export const VaaClient: React.FC<VaaClientProps> = ({
   const [showCamera, setShowCamera] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [showContactList, setShowContactList] = useState(false);
+  const [isKernelActive, setIsKernelActive] = useState(true);
+  const [newsIntakeMode, setNewsIntakeMode] = useState<"vaa" | "viabhron">("vaa");
+  
+  useEffect(() => {
+    // Check if resident agent exists as proxy for kernel state
+    const residentAgent = agents.find(a => a.isResident && a.role === 'head');
+    setIsKernelActive(!!residentAgent);
+  }, [agents]);
+
   const [activeChatFilter, setActiveChatFilter] = useState("All");
   const [chatSearchQuery, setChatSearchQuery] = useState("");
   const [availableChatFilters, setAvailableChatFilters] = useState(["All", "Semi Local", "Cloudflare", "GitHub", "Gmail", "Corporate", "Hatchery"]);
@@ -634,6 +643,8 @@ export const VaaClient: React.FC<VaaClientProps> = ({
             onOpenDiscovery={() => setShowDiscoveryHub(true)}
             channels={intelligenceChannels}
             pulses={intelligencePulses}
+            newsIntakeMode={newsIntakeMode}
+            isKernelActive={isKernelActive}
           />
         );
       case "workflow":
@@ -1301,6 +1312,8 @@ export const VaaClient: React.FC<VaaClientProps> = ({
             isNative={isNative}
             canInstallPwa={!!deferredPrompt}
             onInstallPwa={handlePwaInstall}
+            newsIntakeMode={newsIntakeMode}
+            onSetNewsIntakeMode={setNewsIntakeMode}
           />
         )}
       </AnimatePresence>

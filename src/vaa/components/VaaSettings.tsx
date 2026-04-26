@@ -38,6 +38,8 @@ interface VaaSettingsProps {
   isNative?: boolean;
   canInstallPwa?: boolean;
   onInstallPwa?: () => void;
+  newsIntakeMode?: "vaa" | "viabhron";
+  onSetNewsIntakeMode?: (mode: "vaa" | "viabhron") => void;
 }
 
 export const VaaSettings: React.FC<VaaSettingsProps> = ({ 
@@ -53,7 +55,9 @@ export const VaaSettings: React.FC<VaaSettingsProps> = ({
   onSystemPurge,
   isNative,
   canInstallPwa,
-  onInstallPwa
+  onInstallPwa,
+  newsIntakeMode = "vaa",
+  onSetNewsIntakeMode
 }) => {
   const [subPage, setSubPage] = useState<"main" | "filters" | "secrets" | "services">("main");
   const [showAccreditation, setShowAccreditation] = useState(false);
@@ -245,6 +249,43 @@ export const VaaSettings: React.FC<VaaSettingsProps> = ({
                   </div>
                 ))}
               </div>
+            </div>
+          </section>
+
+          <section className="space-y-4">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest text-amber-600">Intelligence Intake</h3>
+            <div className="bg-white rounded-3xl p-4 border border-slate-100 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between border-b border-slate-50 pb-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center">
+                    <Icons.Zap className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-slate-700">Substrate Source</div>
+                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Feed Directness Protocol</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex bg-slate-50 p-1 rounded-2xl">
+                <button 
+                  onClick={() => onSetNewsIntakeMode?.("vaa")}
+                  className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all ${newsIntakeMode === 'vaa' ? "bg-white text-slate-800 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+                >
+                  Direct (Vaa)
+                </button>
+                <button 
+                  onClick={() => onSetNewsIntakeMode?.("viabhron")}
+                  className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all ${newsIntakeMode === 'viabhron' ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+                >
+                  Kernel (Viabhron)
+                </button>
+              </div>
+              <p className="px-2 text-[9px] text-slate-400 leading-relaxed font-medium">
+                {newsIntakeMode === 'vaa' 
+                  ? "Vaa delivers news pulses directly from the global broadcast. Viabhron connection is required ONLY for sovereign deep-saves."
+                  : "Viabhron ingest and synthesizes all updates. High-latency but sovereign-accurate intelligence."}
+              </p>
             </div>
           </section>
 

@@ -35,6 +35,8 @@ interface NewsTabProps {
   onOpenDiscovery: () => void;
   channels: IntelligenceChannel[];
   pulses: IntelligencePulse[];
+  newsIntakeMode: "vaa" | "viabhron";
+  isKernelActive: boolean;
 }
 
 export const NewsTab: React.FC<NewsTabProps> = ({ 
@@ -49,7 +51,9 @@ export const NewsTab: React.FC<NewsTabProps> = ({
   onCardTap,
   onOpenDiscovery,
   channels,
-  pulses
+  pulses,
+  newsIntakeMode,
+  isKernelActive
 }) => {
   const [showTrendFilter, setShowTrendFilter] = useState(false);
   const [filterKeywords, setFilterKeywords] = useState<string[]>(['javascript', 'web-design']);
@@ -167,8 +171,16 @@ export const NewsTab: React.FC<NewsTabProps> = ({
           <div className="px-6 mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-              <h2 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.3em]">Urgent Intelligence</h2>
+              <h2 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.3em]">
+                {newsIntakeMode === 'vaa' ? 'Vaa Broadcast' : 'Viabhron Intake'}
+              </h2>
             </div>
+            {newsIntakeMode === 'viabhron' && (
+              <div className={`px-2 py-0.5 rounded flex items-center gap-1 ${isKernelActive ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-400'}`}>
+                <Brain className="w-2.5 h-2.5" />
+                <span className="text-[7px] font-black uppercase tracking-widest">{isKernelActive ? 'Kernel Active' : 'Kernel Offline'}</span>
+              </div>
+            )}
           </div>
 
           <div className="flex gap-3 overflow-x-auto px-6 no-scrollbar snap-x snap-mandatory">
@@ -181,22 +193,42 @@ export const NewsTab: React.FC<NewsTabProps> = ({
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full" />
+                      <div className={`w-1.5 h-1.5 rounded-full ${newsIntakeMode === 'vaa' ? 'bg-amber-500' : 'bg-indigo-500'}`} />
                       <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{card.category}</span>
                     </div>
+                    {newsIntakeMode === 'vaa' && (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isKernelActive) {
+                            import('sonner').then(({ toast }) => toast.success("Intelligence ratified to Sovereign Substrate."));
+                          } else {
+                            import('sonner').then(({ toast }) => toast.error("Kernel Disconnected: Cannot relay intelligence."));
+                          }
+                        }}
+                        className={`p-1 transition-all rounded-lg ${isKernelActive ? 'text-amber-500 hover:bg-amber-50 active:scale-90' : 'text-slate-200 cursor-not-allowed grayscale'}`}
+                        title={isKernelActive ? "Relay to Viabhron" : "Kernel Disconnected"}
+                      >
+                        <Zap className={`w-3.5 h-3.5 ${isKernelActive ? 'fill-amber-500' : ''}`} />
+                      </button>
+                    )}
                   </div>
                   <h3 className="text-xs font-black text-slate-900 leading-tight uppercase tracking-tight line-clamp-3 group-hover:text-indigo-600 transition-colors">
                     {card.title}
                   </h3>
                 </div>
                 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <p className="text-[9px] text-slate-400 font-bold leading-tight line-clamp-2">
                     {card.summary}
                   </p>
                   <div className="flex items-center justify-between pt-1.5 border-t border-slate-50">
-                    <span className="text-[7px] font-black text-slate-900 uppercase tracking-tighter">{card.source}</span>
-                    <Zap className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />
+                    <span className="text-[7px] font-black text-slate-900 uppercase tracking-tighter">
+                      {newsIntakeMode === 'vaa' ? card.source : 'Synthesized Logic'}
+                    </span>
+                    <div className={`w-2.5 h-2.5 rounded-full ${newsIntakeMode === 'vaa' ? 'bg-slate-100' : 'bg-indigo-50 flex items-center justify-center'}`}>
+                      {newsIntakeMode === 'viabhron' && <Brain className="w-2 h-2 text-indigo-400" />}
+                    </div>
                   </div>
                 </div>
               </div>
