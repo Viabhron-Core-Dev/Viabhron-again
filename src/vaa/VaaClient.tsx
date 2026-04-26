@@ -508,7 +508,21 @@ export const VaaClient: React.FC<VaaClientProps> = ({
     };
 
     window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+
+    const handleNavApi = () => {
+      setShowVaaSettings(true);
+      // We need to tell VaaSettings to open the apiKeys subpage
+      // Since we don't have a direct prop for subpage, we can use a temporary global or state in VaaClient
+      // But VaaSettings is already open, so let's just make it simple.
+      // I'll add a 'initialSubPage' prop to VaaSettings or just rely on a window event.
+      window.dispatchEvent(new CustomEvent('vaa:settings-go-api'));
+    };
+    window.addEventListener('viabhron:nav-settings-api', handleNavApi);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('viabhron:nav-settings-api', handleNavApi);
+    };
   }, [
     showCamera, showQRScanner, showVaaSettings, showContactList, 
     showWorkflowBuilder, showSwipeView, isAnyAppActive, selectedChat, view
@@ -698,7 +712,7 @@ export const VaaClient: React.FC<VaaClientProps> = ({
     setShowPlusMenu(false);
   };
 
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = async (content: string) => {
     if (!selectedChat || !content.trim()) return;
 
     const newMessage: Message = {
@@ -708,9 +722,10 @@ export const VaaClient: React.FC<VaaClientProps> = ({
       timestamp: new Date().toISOString()
     };
 
+    const updatedMessages = [...selectedChat.messages, newMessage];
     const updatedChat = {
       ...selectedChat,
-      messages: [...selectedChat.messages, newMessage],
+      messages: updatedMessages,
       lastMessage: content.trim(),
       updatedAt: Date.now()
     };
@@ -721,7 +736,107 @@ export const VaaClient: React.FC<VaaClientProps> = ({
     // Skip AI simulation for self-chats
     if (updatedChat.isSelf) return;
 
-    // Simulate agent response
+    if (updatedChat.isAiProvider && updatedChat.provider && updatedChat.model) {
+      // Direct API Routing
+      const responseId = `resp-${Date.now()}`;
+      const placeholderResponse: Message = {
+        id: responseId,
+        role: "assistant",
+        content: "Drafting response...",
+        timestamp: new Date().toISOString(),
+        status: "pending"
+      };
+
+      const chatWithPlaceholder = {
+        ...updatedChat,
+        messages: [...updatedMessages, placeholderResponse]
+      };
+      
+      setChats(prev => prev.map(c => c.id === selectedChat.id ? chatWithPlaceholder : c));
+      setSelectedChat(chatWithPlaceholder);
+
+      try {
+        const { streamAiResponse } = await import('../lib/aiService');
+        await streamAiResponse(
+          updatedChat.provider as any,
+          updatedChat.model,
+          updatedMessages.map(m => ({ role: m.role as any, content: m.content })),
+          {
+            onChunk: (text) => {
+              setChats(prev => prev.map(c => {
+                if (c.id === selectedChat.id) {
+                  const msgs = [...c.messages];
+                  const lastIdx = msgs.length - 1;
+                  if (msgs[lastIdx].id === responseId) {
+                    msgs[lastIdx] = { ...msgs[lastIdx], content: text, status: undefined };
+                  }
+                  return { ...c, messages: msgs, lastMessage: text };
+                }
+                return c;
+              }));
+              setSelectedChat(prev => {
+                if (prev?.id === selectedChat.id) {
+                  const msgs = [...prev.messages];
+                  const lastIdx = msgs.length - 1;
+                  if (msgs[lastIdx].id === responseId) {
+                    msgs[lastIdx] = { ...msgs[lastIdx], content: text, status: undefined };
+                  }
+                  return { ...prev, messages: msgs, lastMessage: text };
+                }
+                return prev;
+              });
+            },
+            onComplete: (fullText) => {
+              // Final sync
+              const finalMessage: Message = {
+                id: responseId,
+                role: "assistant",
+                content: fullText,
+                timestamp: new Date().toISOString()
+              };
+              setChats(prev => prev.map(c => {
+                if (c.id === selectedChat.id) {
+                  const msgs = c.messages.map(m => m.id === responseId ? finalMessage : m);
+                  return { ...c, messages: msgs, lastMessage: fullText, updatedAt: Date.now() };
+                }
+                return c;
+              }));
+              // No need to set selected chat again, chunk handled it
+            },
+            onError: (err) => {
+              const errorMessage: Message = {
+                id: `err-${Date.now()}`,
+                role: "system",
+                content: `Protocol Breach: ${err}`,
+                timestamp: new Date().toISOString(),
+                interactiveOptions: [
+                  { id: 'fix-key', label: 'Check API Keys', action: 'viabhron:nav-settings-api', type: 'primary' }
+                ]
+              };
+              setChats(prev => prev.map(c => {
+                if (c.id === selectedChat.id) {
+                  const msgs = c.messages.filter(m => m.id !== responseId);
+                  return { ...c, messages: [...msgs, errorMessage] };
+                }
+                return c;
+              }));
+              setSelectedChat(prev => {
+                if (prev?.id === selectedChat.id) {
+                  const msgs = prev.messages.filter(m => m.id !== responseId);
+                  return { ...prev, messages: [...msgs, errorMessage] };
+                }
+                return prev;
+              });
+            }
+          }
+        );
+      } catch (e: any) {
+        toast.error(`Neural Link Failure: ${e.message}`);
+      }
+      return;
+    }
+
+    // Default simulation for standard agents
     setTimeout(() => {
       const response: Message = {
         id: `resp-${Date.now()}`,

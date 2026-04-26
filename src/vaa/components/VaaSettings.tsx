@@ -59,7 +59,14 @@ export const VaaSettings: React.FC<VaaSettingsProps> = ({
   newsIntakeMode = "vaa",
   onSetNewsIntakeMode
 }) => {
-  const [subPage, setSubPage] = useState<"main" | "filters" | "secrets" | "services">("main");
+  const [subPage, setSubPage] = useState<"main" | "filters" | "secrets" | "services" | "apiKeys">("main");
+
+  React.useEffect(() => {
+    const handleGoApi = () => setSubPage("apiKeys");
+    window.addEventListener('vaa:settings-go-api', handleGoApi);
+    return () => window.removeEventListener('vaa:settings-go-api', handleGoApi);
+  }, []);
+
   const [showAccreditation, setShowAccreditation] = useState(false);
   const [showAddSecret, setShowAddSecret] = useState(false);
   const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
@@ -68,6 +75,168 @@ export const VaaSettings: React.FC<VaaSettingsProps> = ({
   const [editingSecretId, setEditingSecretId] = useState<string | null>(null);
   const [editLabel, setEditLabel] = useState('');
   const [visibleSecrets, setVisibleSecrets] = useState<Set<string>>(new Set());
+
+  // API Keys state
+  const [apiConfigs, setApiConfigs] = useState<import("../../lib/apiKeys").ApiKeyConfig[]>([]);
+  const [isTestingKey, setIsTestingKey] = useState<string | null>(null);
+  const [newKeys, setNewKeys] = useState<{ [key: string]: string }>({});
+
+  React.useEffect(() => {
+    if (subPage === "apiKeys") {
+      import("../../lib/apiKeys").then(m => m.getConfigs().then(setApiConfigs));
+    }
+  }, [subPage]);
+
+  const handleSaveApiKey = async (providerId: import("../../lib/apiKeys").ProviderId) => {
+    const key = newKeys[providerId];
+    if (!key) return;
+
+    setIsTestingKey(providerId);
+    const { saveApiKey, testConnection, saveConfigs } = await import("../../lib/apiKeys");
+    
+    // 1. Save the key locally
+    await saveApiKey(providerId, key);
+
+    // 2. Test connection
+    const isValid = await testConnection(providerId, key);
+    
+    // 3. Update configs
+    const updatedConfigs = apiConfigs.map(c => 
+      c.providerId === providerId 
+        ? { ...c, status: isValid ? 'valid' as const : 'invalid' as const, lastTested: Date.now() } 
+        : c
+    );
+    setApiConfigs(updatedConfigs);
+    await saveConfigs(updatedConfigs);
+
+    // 4. Reset new key input
+    setNewKeys(prev => ({ ...prev, [providerId]: '' }));
+    setIsTestingKey(null);
+  };
+
+  const handleRemoveApiKey = async (providerId: import("../../lib/apiKeys").ProviderId) => {
+    const { removeApiKey, saveConfigs } = await import("../../lib/apiKeys");
+    await removeApiKey(providerId);
+    
+    const updatedConfigs = apiConfigs.map(c => 
+      c.providerId === providerId 
+        ? { ...c, status: 'untested' as const, lastTested: undefined } 
+        : c
+    );
+    setApiConfigs(updatedConfigs);
+    await saveConfigs(updatedConfigs);
+  };
+
+  const handleUpdateProviderName = async (providerId: import("../../lib/apiKeys").ProviderId, name: string) => {
+    const { saveConfigs } = await import("../../lib/apiKeys");
+    const updatedConfigs = apiConfigs.map(c => 
+      c.providerId === providerId ? { ...c, customName: name } : c
+    );
+    setApiConfigs(updatedConfigs);
+    await saveConfigs(updatedConfigs);
+  };
+
+  if (subPage === "apiKeys") {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: 20 }}
+        className="absolute inset-0 bg-slate-50 z-[100] flex flex-col"
+      >
+        <div className="p-6 bg-white border-b border-slate-100 flex items-center gap-4 pt-safe">
+          <button onClick={() => setSubPage("main")} className="p-2 hover:bg-slate-50 rounded-full transition-colors">
+            <ArrowLeft className="w-6 h-6 text-slate-600" />
+          </button>
+          <h2 className="text-xl font-bold text-slate-800">AI Provider Keys</h2>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 pb-20">
+          <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex gap-3">
+            <ShieldCheck className="w-5 h-5 text-indigo-600 flex-shrink-0" />
+            <p className="text-[10px] text-indigo-700 font-bold uppercase tracking-tight leading-relaxed">
+              API Keys are stored encrypted on your device using Capacitor Preferences. They are never sent to Firestore or any intermediate server.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {apiConfigs.map(config => (
+              <div key={config.providerId} className="bg-white rounded-[2.5rem] p-6 border border-slate-100 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
+                      config.providerId === 'gemini' ? 'bg-blue-50 text-blue-600' : 
+                      config.providerId === 'openai' ? 'bg-emerald-50 text-emerald-600' : 
+                      'bg-orange-50 text-orange-600'
+                    }`}>
+                      <Brain className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <input 
+                        value={config.customName || config.providerId.charAt(0).toUpperCase() + config.providerId.slice(1)}
+                        onChange={(e) => handleUpdateProviderName(config.providerId, e.target.value)}
+                        className="text-sm font-bold text-slate-700 bg-transparent border-none outline-none focus:ring-0 w-32"
+                        placeholder="Provider Name"
+                      />
+                      <div className="flex items-center gap-2">
+                        <div className={`w-1.5 h-1.5 rounded-full ${
+                          config.status === 'valid' ? 'bg-green-500' : 
+                          config.status === 'invalid' ? 'bg-red-500' : 'bg-slate-300'
+                        }`} />
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                          {config.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {config.status !== 'untested' && (
+                    <button 
+                      onClick={() => handleRemoveApiKey(config.providerId)}
+                      className="text-[9px] font-black uppercase tracking-widest text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-full transition-colors"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+
+                {config.status === 'untested' ? (
+                  <div className="flex gap-2">
+                    <input 
+                      type="password"
+                      value={newKeys[config.providerId] || ''}
+                      onChange={(e) => setNewKeys(prev => ({ ...prev, [config.providerId]: e.target.value }))}
+                      placeholder={`Enter ${config.providerId} API Key`}
+                      className="flex-1 bg-slate-50 border border-slate-100 rounded-2xl p-3 text-xs font-medium text-slate-700 focus:ring-2 focus:ring-wa-header outline-none"
+                    />
+                    <button 
+                      onClick={() => handleSaveApiKey(config.providerId)}
+                      disabled={!newKeys[config.providerId] || isTestingKey === config.providerId}
+                      className="bg-wa-header text-white px-4 rounded-2xl text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
+                    >
+                      {isTestingKey === config.providerId ? "Testing..." : "Save"}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 rounded-2xl p-3 border border-slate-100 flex justify-between items-center">
+                    <div className="font-mono text-xs text-slate-400 tracking-widest">
+                      ••••••••••••••••••••••••
+                    </div>
+                    <button 
+                      onClick={() => handleSaveApiKey(config.providerId)}
+                      className="text-wa-header hover:text-wa-header/80"
+                    >
+                      <Icons.RefreshCw className={`w-4 h-4 ${isTestingKey === config.providerId ? 'animate-spin' : ''}`} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
 
   const moveFilter = (index: number, direction: 'up' | 'down') => {
     const newFilters = [...availableFilters];
@@ -613,6 +782,21 @@ export const VaaSettings: React.FC<VaaSettingsProps> = ({
         <section className="space-y-4">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Substrate Logic</h3>
           <div className="bg-white rounded-3xl p-4 border border-slate-100 space-y-4">
+            <button 
+              onClick={() => setSubPage("apiKeys")}
+              className="w-full flex items-center justify-between group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center">
+                  <Key className="w-5 h-5 text-indigo-600" />
+                </div>
+                <div className="text-left">
+                  <div className="text-sm font-bold text-slate-700">AI Provider Keys</div>
+                  <div className="text-[10px] text-slate-400">Direct Gemini, Claude, OpenAI integration</div>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-600 transition-colors" />
+            </button>
             <button 
               onClick={() => setSubPage("services")}
               className="w-full flex items-center justify-between group"

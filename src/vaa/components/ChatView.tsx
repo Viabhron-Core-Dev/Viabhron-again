@@ -138,8 +138,14 @@ export const ChatView: React.FC<ChatViewProps> = ({
                   {chat.name}
                   {isLocal && <span className="ml-2 text-[8px] bg-white/20 px-1 rounded">LOCAL</span>}
                 </h3>
-                <p className="text-[9px] font-bold text-white/70 uppercase tracking-widest">
-                  {isLocal ? "Standalone Pulse Protocol" : chat.isSelf ? "Private Scratchpad (Nucleus Buffer)" : isSentinel ? "System Monitoring Active" : isOmega ? "Sovereign Brain Active" : "Celestial Engine Active"}
+                <p className="text-[9px] font-bold text-white/70 uppercase tracking-widest flex items-center gap-1.5">
+                  {chat.isAiProvider ? (
+                    <>
+                      {chat.provider} node 
+                      <span className="w-1 h-1 bg-white/30 rounded-full" /> 
+                      {chat.model}
+                    </>
+                  ) : isLocal ? "Standalone Pulse Protocol" : chat.isSelf ? "Private Scratchpad (Nucleus Buffer)" : isSentinel ? "System Monitoring Active" : isOmega ? "Sovereign Brain Active" : "Celestial Engine Active"}
                 </p>
               </div>
             </div>

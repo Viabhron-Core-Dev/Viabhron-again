@@ -55,6 +55,16 @@ class OfflineAiPlugin : Plugin() {
     }
 
     @PluginMethod
+    fun testLoad(call: PluginCall) {
+        val testPath = getContext().filesDir.absolutePath + "/model.gguf"
+        val handle = nativeLoadModel(testPath)
+        val ret = JSObject()
+        ret.put("success", handle != 0L)
+        ret.put("handle", handle)
+        call.resolve(ret)
+    }
+
+    @PluginMethod
     fun getStatus(call: PluginCall) {
         val ret = JSObject()
         ret.put("loaded", modelHandle != 0L)

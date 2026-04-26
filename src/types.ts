@@ -66,6 +66,9 @@ export interface CelestialChat {
   isHeadAgent?: boolean;
   isSelf?: boolean;
   filterCategory?: string;
+  isAiProvider?: boolean;
+  provider?: string;
+  model?: string;
 }
 
 export interface RelayProfile {
@@ -363,6 +366,7 @@ export interface Agent {
   status: 'active' | 'inactive' | 'error';
   capabilities: string[];
   lastActive: Date;
+  isAiProvider?: boolean;
 }
 
 export type UIMode = 'vaa' | 'browser' | 'expert';

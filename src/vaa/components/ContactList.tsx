@@ -44,17 +44,27 @@ export const ContactList: React.FC<ContactListProps> = ({
   const [sortBy, setSortBy] = useState<'name' | 'recent'>('name');
 
   // Create Agent Form State
+  const [createMode, setCreateMode] = useState<'standard' | 'provider'>('standard');
+  const [apiConfigs, setApiConfigs] = useState<import("../../lib/apiKeys").ApiKeyConfig[]>([]);
+
   const [newAgent, setNewAgent] = useState({
     name: '',
     description: '',
     role: 'specialized' as any,
     provider: 'gemini' as any,
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-2.0-flash',
     systemInstruction: '',
     activeExtensionIds: [] as string[],
     apiKeyId: '',
-    color: '#6366f1'
+    color: '#6366f1',
+    isAiProvider: false
   });
+
+  React.useEffect(() => {
+    if (showCreateModal) {
+      import("../../lib/apiKeys").then(m => m.getConfigs().then(setApiConfigs));
+    }
+  }, [showCreateModal]);
 
   const filteredAgents = useMemo(() => {
     let result = agents.filter(a => 
@@ -84,20 +94,34 @@ export const ContactList: React.FC<ContactListProps> = ({
       id: `agent-${Date.now()}`,
       status: 'active',
       lastActive: new Date(),
-      capabilities: []
+      capabilities: [],
+      // @ts-ignore - extending Agent type internally
+      isAiProvider: createMode === 'provider'
     });
     setShowCreateModal(false);
+    resetForm();
+  };
+
+  const resetForm = () => {
     setNewAgent({
       name: '',
       description: '',
       role: 'specialized',
       provider: 'gemini',
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-2.0-flash',
       systemInstruction: '',
       activeExtensionIds: [],
       apiKeyId: '',
-      color: '#6366f1'
+      color: '#6366f1',
+      isAiProvider: false
     });
+    setCreateMode('standard');
+  };
+
+  const PROVIDER_MODELS: { [key: string]: string[] } = {
+    gemini: ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-thinking-exp'],
+    openai: ['gpt-4o', 'gpt-4o-mini', 'o1', 'o3-mini'],
+    claude: ['claude-3-5-sonnet-20241022', 'claude-3-5-haiku-20241022', 'claude-3-opus-20240229']
   };
 
   return (
@@ -205,8 +229,15 @@ export const ContactList: React.FC<ContactListProps> = ({
                       {agent.role === 'head' ? <Shield size={24} /> : <Brain size={24} />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-bold text-slate-800 truncate">{agent.name}</div>
-                      <div className="text-xs text-slate-500 truncate">{agent.description}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="font-bold text-slate-800 truncate">{agent.name}</div>
+                        {(agent as any).isAiProvider && (
+                          <div className="px-1.5 py-0.5 bg-indigo-100 text-indigo-600 text-[8px] font-black uppercase tracking-widest rounded-md border border-indigo-200">
+                            AI Provider
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-xs text-slate-500 truncate">{agent.description || `${(agent as any).provider || 'Resident'} agent`}</div>
                     </div>
                   </button>
                 ))}
@@ -234,8 +265,15 @@ export const ContactList: React.FC<ContactListProps> = ({
                       <Cpu size={24} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-bold text-slate-800 truncate">{agent.name}</div>
-                      <div className="text-xs text-slate-500 truncate">{agent.description}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="font-bold text-slate-800 truncate">{agent.name}</div>
+                        {(agent as any).isAiProvider && (
+                          <div className="px-1.5 py-0.5 bg-indigo-100 text-indigo-600 text-[8px] font-black uppercase tracking-widest rounded-md border border-indigo-200">
+                            AI Provider
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-xs text-slate-500 truncate">{agent.description || `${(agent as any).provider || 'External'} agent`}</div>
                     </div>
                   </button>
                 ))}
@@ -275,15 +313,32 @@ export const ContactList: React.FC<ContactListProps> = ({
               </div>
 
               <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
+                <div className="flex bg-slate-100 p-1 rounded-2xl mb-4">
+                  <button 
+                    onClick={() => setCreateMode('standard')}
+                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${createMode === 'standard' ? "bg-white text-slate-800 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+                  >
+                    Specialized
+                  </button>
+                  <button 
+                    onClick={() => setCreateMode('provider')}
+                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${createMode === 'provider' ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+                  >
+                    AI Provider
+                  </button>
+                </div>
+
                 {/* Avatar Placeholder */}
                 <div className="flex flex-col items-center gap-3">
-                  <div className="w-24 h-24 rounded-[2rem] bg-indigo-500 flex items-center justify-center text-white shadow-xl relative group">
-                    <Brain size={48} />
+                  <div className={`w-24 h-24 rounded-[2rem] flex items-center justify-center text-white shadow-xl relative group ${createMode === 'provider' ? 'bg-indigo-600' : 'bg-emerald-500'}`}>
+                    {createMode === 'provider' ? <Cpu size={48} /> : <Brain size={48} />}
                     <div className="absolute inset-0 bg-black/20 rounded-[2rem] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
                       <Plus className="w-8 h-8 text-white" />
                     </div>
                   </div>
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Agent Persona</span>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    {createMode === 'provider' ? 'API Direct Connection' : 'Neural Persona'}
+                  </span>
                 </div>
 
                 <div className="space-y-4">
@@ -292,31 +347,105 @@ export const ContactList: React.FC<ContactListProps> = ({
                     <input 
                       value={newAgent.name}
                       onChange={(e) => setNewAgent({...newAgent, name: e.target.value})}
-                      placeholder="e.g. The Strategist"
+                      placeholder={createMode === 'provider' ? "e.g. Claude Research" : "e.g. The Strategist"}
                       className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-wa-header outline-none transition-all"
                     />
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Description</label>
-                    <input 
-                      value={newAgent.description}
-                      onChange={(e) => setNewAgent({...newAgent, description: e.target.value})}
-                      placeholder="Briefly describe their role..."
-                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-wa-header outline-none transition-all"
-                    />
-                  </div>
+                  {createMode === 'standard' && (
+                    <>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Description</label>
+                        <input 
+                          value={newAgent.description}
+                          onChange={(e) => setNewAgent({...newAgent, description: e.target.value})}
+                          placeholder="Briefly describe their role..."
+                          className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-wa-header outline-none transition-all"
+                        />
+                      </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Personality (System Instruction)</label>
-                    <textarea 
-                      value={newAgent.systemInstruction}
-                      onChange={(e) => setNewAgent({...newAgent, systemInstruction: e.target.value})}
-                      placeholder="Define their behavior, constraints, and core logic..."
-                      rows={4}
-                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-wa-header outline-none transition-all resize-none"
-                    />
-                  </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Personality (System Instruction)</label>
+                        <textarea 
+                          value={newAgent.systemInstruction}
+                          onChange={(e) => setNewAgent({...newAgent, systemInstruction: e.target.value})}
+                          placeholder="Define their behavior, constraints, and core logic..."
+                          rows={4}
+                          className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-wa-header outline-none transition-all resize-none"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {createMode === 'provider' && (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Select Provider Backend</label>
+                        <div className="grid grid-cols-1 gap-2">
+                          {['gemini', 'openai', 'claude'].map((pId) => {
+                            const config = apiConfigs.find(c => c.providerId === pId);
+                            const isValid = config?.status === 'valid';
+                            return (
+                              <button
+                                key={pId}
+                                onClick={() => {
+                                  if (isValid) {
+                                    setNewAgent({
+                                      ...newAgent, 
+                                      provider: pId as any,
+                                      model: PROVIDER_MODELS[pId][0]
+                                    });
+                                  } else {
+                                    window.dispatchEvent(new CustomEvent('viabhron:nav-settings-api'));
+                                    setShowCreateModal(false);
+                                  }
+                                }}
+                                className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                                  newAgent.provider === pId && isValid
+                                    ? 'bg-indigo-50 border-indigo-200' 
+                                    : 'bg-white border-slate-100'
+                                }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isValid ? 'bg-indigo-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                                    <Brain className="w-4 h-4" />
+                                  </div>
+                                  <div className="text-left">
+                                    <div className={`text-sm font-bold ${isValid ? 'text-slate-800' : 'text-slate-400'}`}>
+                                      {pId.charAt(0).toUpperCase() + pId.slice(1)}
+                                    </div>
+                                    {!isValid && (
+                                      <div className="text-[9px] font-black text-red-400 uppercase tracking-widest">
+                                        Cold Node — Add key in Settings first
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                {newAgent.provider === pId && isValid && <Check className="w-4 h-4 text-indigo-600" />}
+                                {!isValid && <Key className="w-4 h-4 text-slate-300" />}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Model Selection</label>
+                        <div className="relative">
+                          <select 
+                            value={newAgent.model}
+                            onChange={(e) => setNewAgent({...newAgent, model: e.target.value})}
+                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm font-bold text-slate-700 appearance-none focus:ring-2 focus:ring-wa-header outline-none transition-all"
+                          >
+                            {(PROVIDER_MODELS[newAgent.provider] || []).map(m => (
+                              <option key={m} value={m}>{m}</option>
+                            ))}
+                          </select>
+                          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">

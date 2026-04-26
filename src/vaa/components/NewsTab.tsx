@@ -20,6 +20,7 @@ import {
   Github
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { toast } from 'sonner';
 import { Agent, NewsCard, IntelligenceChannel, IntelligencePulse } from '../../types';
 
 interface NewsTabProps {
