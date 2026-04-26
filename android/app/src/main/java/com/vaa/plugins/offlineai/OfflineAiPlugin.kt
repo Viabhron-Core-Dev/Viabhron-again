@@ -1,3 +1,4 @@
+/* SIDELINED — restore after JNI session
 package com.vaa.plugins.offlineai
 
 import com.getcapacitor.JSObject
@@ -25,62 +26,31 @@ class OfflineAiPlugin : Plugin() {
     private external fun nativeTransform(handle: Long, text: String, instruction: String): String
 
     init {
-        System.loadLibrary("vii_llama") // JNI library
+        // System.loadLibrary("vii_llama") // JNI library
     }
 
     @PluginMethod
     fun transform(call: PluginCall) {
-        val text = call.getString("text") ?: ""
-        val instruction = call.getString("instruction") ?: ""
-        
-        lastActivity = System.currentTimeMillis()
-        resetIdleTimer()
-
-        // Lazy load
-        if (modelHandle == 0L) {
-            val modelPath = getContext().filesDir.absolutePath + "/model.gguf"
-            modelHandle = nativeLoadModel(modelPath)
-        }
-
-        if (modelHandle == 0L) {
-            call.reject("Failed to load model")
-            return
-        }
-
-        val result = nativeTransform(modelHandle, text, instruction)
-        
-        val ret = JSObject()
-        ret.put("result", result)
-        call.resolve(ret)
+        call.reject("OfflineAI is currently sidelined")
     }
 
     @PluginMethod
     fun testLoad(call: PluginCall) {
-        val testPath = getContext().filesDir.absolutePath + "/model.gguf"
-        val handle = nativeLoadModel(testPath)
-        val ret = JSObject()
-        ret.put("success", handle != 0L)
-        ret.put("handle", handle)
-        call.resolve(ret)
+        call.reject("OfflineAI is currently sidelined")
     }
 
     @PluginMethod
     fun getStatus(call: PluginCall) {
         val ret = JSObject()
-        ret.put("loaded", modelHandle != 0L)
-        ret.put("lastActivity", lastActivity)
+        ret.put("loaded", false)
+        ret.put("sidelined", true)
         call.resolve(ret)
     }
 
     private fun unloadModel() {
-        if (modelHandle != 0L) {
-            nativeUnloadModel(modelHandle)
-            modelHandle = 0L
-        }
     }
 
     private fun resetIdleTimer() {
-        handler.removeCallbacks(unloadRunnable)
-        handler.postDelayed(unloadRunnable, idleTimeout)
     }
 }
+*/
