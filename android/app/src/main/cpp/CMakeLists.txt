@@ -19,12 +19,12 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(llamacpp)
 
 # Add our JNI library
-add_library(llama SHARED
+add_library(vii_llama SHARED
         llama-jni.cpp
 )
 
 # Include directories
-target_include_directories(llama PRIVATE
+target_include_directories(vii_llama PRIVATE
         ${llamacpp_SOURCE_DIR}
         ${llamacpp_SOURCE_DIR}/include
         ${llamacpp_SOURCE_DIR}/common
@@ -32,7 +32,7 @@ target_include_directories(llama PRIVATE
 
 # Link against llama.cpp and system libraries
 # llama.cpp build produces 'llama' target
-target_link_libraries(llama
+target_link_libraries(vii_llama
         llama
         android
         log

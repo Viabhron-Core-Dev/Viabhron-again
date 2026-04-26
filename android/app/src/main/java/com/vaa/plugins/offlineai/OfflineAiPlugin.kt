@@ -25,7 +25,7 @@ class OfflineAiPlugin : Plugin() {
     private external fun nativeTransform(handle: Long, text: String, instruction: String): String
 
     init {
-        System.loadLibrary("llama") // JNI library
+        System.loadLibrary("vii_llama") // JNI library
     }
 
     @PluginMethod
