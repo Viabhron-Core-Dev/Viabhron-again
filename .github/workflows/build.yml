@@ -71,16 +71,18 @@ jobs:
           gradle wrapper --gradle-version 8.2.1
           chmod +x gradlew
 
-      - name: Install NDK and CMake
-        run: |
-          yes | sdkmanager --install "ndk;26.1.10909125" "cmake;3.22.1"
-          NDK_PATH=$(find $ANDROID_HOME -name "26.1.10909125" -type d | head -n 1)
-          if [ -z "$NDK_PATH" ]; then
-            echo "NDK Not Found, using default fallback"
-            NDK_PATH="${ANDROID_HOME}/ndk/26.1.10909125"
-          fi
-          echo "ANDROID_NDK_HOME=$NDK_PATH" >> $GITHUB_ENV
-          echo "Using NDK at $NDK_PATH"
+      # SIDELINED — restore after JNI session
+      # - name: Install NDK and CMake
+      #   run: |
+      #     yes | sdkmanager --install "ndk;26.1.10909125" "cmake;3.22.1"
+      #     NDK_PATH=$(find $ANDROID_HOME -name "26.1.10909125" -type d | head -n 1)
+      #     if [ -z "$NDK_PATH" ]; then
+      #       echo "NDK Not Found, using default fallback"
+      #       NDK_PATH="${ANDROID_HOME}/ndk/26.1.10909125"
+      #     fi
+      #     echo "ANDROID_NDK_HOME=$NDK_PATH" >> $GITHUB_ENV
+      #     echo "Using NDK at $NDK_PATH"
+
 
       - name: Sync Capacitor
         run: npx cap sync android
