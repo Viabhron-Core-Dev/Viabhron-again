@@ -14,7 +14,8 @@ include(FetchContent)
 FetchContent_Declare(
   llamacpp
   GIT_REPOSITORY https://github.com/ggerganov/llama.cpp.git
-  GIT_TAG        master
+  GIT_TAG        b3000
+  GIT_SHALLOW    TRUE
 )
 FetchContent_MakeAvailable(llamacpp)
 

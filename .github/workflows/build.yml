@@ -52,18 +52,25 @@ jobs:
           name: pwa-files
           path: dist
 
-      - name: Set up JDK 21
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '17'
           distribution: 'zulu'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install NDK
+      - name: Install NDK and CMake
         run: |
           yes | sdkmanager --install "ndk;26.1.10909125" "cmake;3.22.1"
+          NDK_PATH=$(find $ANDROID_HOME -name "26.1.10909125" -type d | head -n 1)
+          if [ -z "$NDK_PATH" ]; then
+            echo "NDK Not Found, using default fallback"
+            NDK_PATH="${ANDROID_HOME}/ndk/26.1.10909125"
+          fi
+          echo "ANDROID_NDK_HOME=$NDK_PATH" >> $GITHUB_ENV
+          echo "Using NDK at $NDK_PATH"
 
       - name: Sync Capacitor
         run: npx cap sync android
@@ -72,7 +79,7 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew clean assembleDebug --stacktrace --info
+          ./gradlew assembleDebug --stacktrace --info
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
