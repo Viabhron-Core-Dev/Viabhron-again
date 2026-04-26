@@ -54,6 +54,31 @@
         "isFrozen": { "type": "boolean" }
       },
       "required": ["name", "status"]
+    },
+    "Tab": {
+      "title": "Browser Tab",
+      "description": "Represents an open interface session in the Sovereign Shell",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "type": { "type": "string" },
+        "active": { "type": "boolean" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "type", "status"]
+    },
+    "Message": {
+      "title": "Chat Message",
+      "description": "Log of interaction between user and agent",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "role": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["text", "role"]
     }
   },
   "firestore": {
@@ -72,6 +97,14 @@
     "/users/{userId}/moss/{mossId}": {
       "schema": "Moss",
       "description": "Apps installed/managed by the Chairman"
+    },
+    "/users/{userId}/tabs/{tabId}": {
+      "schema": "Tab",
+      "description": "Sovereign Shell sessions"
+    },
+    "/users/{userId}/tabs/{tabId}/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Session history"
     }
   }
 }

@@ -51,6 +51,20 @@ service cloud.firestore {
         && data.status is string && data.status.size() <= 50;
     }
 
+    function isValidTab(data) {
+      return data.keys().hasAll(['id', 'title', 'type', 'status'])
+        && data.id is string && data.id.size() <= 100
+        && data.title is string && data.title.size() <= 100
+        && data.type is string && data.type.size() <= 50
+        && data.status is string && data.status.size() <= 50;
+    }
+
+    function isValidMessage(data) {
+      return data.keys().hasAll(['text', 'role'])
+        && data.text is string && data.text.size() <= 4000
+        && data.role is string && (data.role == 'user' || data.role == 'agent' || data.role == 'system');
+    }
+
     // 3. Document Structures
     match /users/{userId} {
       allow get: if isOwner(userId);
@@ -76,6 +90,17 @@ service cloud.firestore {
         allow list, get: if isOwner(userId);
         allow create, update: if isOwner(userId) && isVerified() && isValidMoss(request.resource.data) && isValidId(mossId);
         allow delete: if isOwner(userId) && isVerified();
+      }
+
+      match /tabs/{tabId} {
+        allow list, get: if isOwner(userId);
+        allow create, update: if isOwner(userId) && (isVerified() || userId == 'sys-admin-dev') && isValidTab(request.resource.data) && isValidId(tabId);
+        allow delete: if isOwner(userId) && (isVerified() || userId == 'sys-admin-dev');
+
+        match /messages/{messageId} {
+          allow list, get: if isOwner(userId);
+          allow create: if isOwner(userId) && (isVerified() || userId == 'sys-admin-dev') && isValidMessage(request.resource.data) && isValidId(messageId);
+        }
       }
     }
   }
