@@ -71,43 +71,20 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
-
-      - name: Fix Corrupt Gradle Wrapper
-        run: |
-          cd android
-          # Completely remove everything related to the wrapper if it's corrupt
-          rm -f gradle/wrapper/gradle-wrapper.jar
-          rm -f gradle/wrapper/gradle-wrapper.properties
-          rm -f gradlew
-          rm -f gradlew.bat
-          # Let the system gradle regenerate it
-          gradle wrapper --gradle-version 8.2.1 --distribution-type all
-          chmod +x gradlew
-          # Verify it works
-          ./gradlew -v
-
-      # SIDELINED — restore after JNI session
-      # - name: Install NDK and CMake
-      #   run: |
-      #     yes | sdkmanager --install "ndk;26.1.10909125" "cmake;3.22.1"
-      #     NDK_PATH=$(find $ANDROID_HOME -name "26.1.10909125" -type d | head -n 1)
-      #     if [ -z "$NDK_PATH" ]; then
-      #       echo "NDK Not Found, using default fallback"
-      #       NDK_PATH="${ANDROID_HOME}/ndk/26.1.10909125"
-      #     fi
-      #     echo "ANDROID_NDK_HOME=$NDK_PATH" >> $GITHUB_ENV
-      #     echo "Using NDK at $NDK_PATH"
-
+        with:
+          gradle-version: 8.2.1
 
       - name: Sync Capacitor
-        run: npx cap sync android
+        run: |
+          npm install
+          npx cap sync android
 
       - name: Build APK
         env:
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx6g -Dorg.gradle.daemon=false"
         run: |
           cd android
-          ./gradlew assembleDebug --stacktrace --info
+          gradle assembleDebug --stacktrace --info
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
