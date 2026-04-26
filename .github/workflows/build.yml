@@ -76,6 +76,8 @@ jobs:
         run: npx cap sync android
 
       - name: Build APK
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g"
         run: |
           cd android
           chmod +x gradlew

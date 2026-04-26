@@ -49,7 +49,7 @@ class InfrastructureManager {
 
       // Initialize with a unique name if not default
       this.currentApp = initializeApp(config, "user-backend-" + Date.now());
-      this.db = getFirestore(this.currentApp);
+      this.db = getFirestore(this.currentApp, config.firestoreDatabaseId || '(default)');
       
       localStorage.setItem('viabhron_firebase_config', JSON.stringify(config));
       return this.db;

@@ -1,20 +1,11 @@
 import { initializeApp, getApp, getApps, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
+import mainAppletConfig from '../../firebase-applet-config.json';
 
-// Default empty config for initial boot
-const defaultEmptyConfig = {
-  apiKey: "placeholder",
-  authDomain: "placeholder",
-  projectId: "placeholder",
-  storageBucket: "placeholder",
-  messagingSenderId: "placeholder",
-  appId: "placeholder"
-};
-
-// Attempt to load from local storage or the config file
+// Attempt to load from local storage or use the main applet config
 const savedConfig = localStorage.getItem('viabhron_firebase_config');
-let configToUse = defaultEmptyConfig;
+let configToUse = mainAppletConfig;
 
 if (savedConfig) {
   try {
@@ -32,9 +23,14 @@ try {
   if (!getApps().length) {
     app = initializeApp(configToUse);
   } else {
+    // If it's already initialized, we might need a named app if the config is different
+    // but for the workstation, we often want to use the default one if it matches
     app = getApp();
   }
-  db = getFirestore(app, (configToUse as any).firestoreDatabaseId);
+  
+  // CRITICAL: Ensure we use the correct database ID
+  const dbId = (configToUse as any).firestoreDatabaseId || (mainAppletConfig as any).firestoreDatabaseId;
+  db = getFirestore(app, dbId);
   auth = getAuth(app);
 } catch (error) {
   console.warn("Firebase initialization deferred or failed. Waiting for Setup Box.", error);

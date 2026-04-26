@@ -11,10 +11,14 @@ endif()
 
 # Fetch llama.cpp
 include(FetchContent)
+set(LLAMA_BUILD_EXAMPLES OFF CACHE BOOL "llama: build examples" FORCE)
+set(LLAMA_BUILD_TESTS OFF CACHE BOOL "llama: build tests" FORCE)
+set(LLAMA_BUILD_SERVER OFF CACHE BOOL "llama: build server" FORCE)
+
 FetchContent_Declare(
   llamacpp
   GIT_REPOSITORY https://github.com/ggerganov/llama.cpp.git
-  GIT_TAG        b3000
+  GIT_TAG        b4788
   GIT_SHALLOW    TRUE
 )
 FetchContent_MakeAvailable(llamacpp)
