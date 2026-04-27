@@ -23,5 +23,5 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "exclude": ["reference", "node_modules", "dist"]
+  "exclude": ["reference", "node_modules", "dist", "android", "workstation-pkg"]
 }

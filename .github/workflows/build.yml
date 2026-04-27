@@ -84,7 +84,10 @@ jobs:
           GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx6g -Dorg.gradle.daemon=false"
         run: |
           cd android
-          gradle assembleDebug --stacktrace --info
+          # Ensure gradlew exists and is executable
+          gradle wrapper --gradle-version 8.2.1 --distribution-type all
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace --info
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
